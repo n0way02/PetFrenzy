@@ -1,0 +1,22 @@
+{
+  "Author": "n0way02",
+  "Name": "PetFrenzy",
+  "InternalName": "PetFrenzy",
+  "AssemblyVersion": "1.0.0.0",
+  "Description": "Eorzea Tamagotchi companion for FFXIV! Choose & hatch a Carbuncle, Fat Cat, Moogle, or Namazu from an animated egg, care for them in a sleek floating HUD, unlock accessories as they evolve, and watch them react live to your HP, combat, deaths, Gil gains, AFK naps, and duties.",
+  "ApplicableVersion": "any",
+  "Punchline": "Animated Eorzea Tamagotchi pet that hatches & reacts live to your FFXIV gameplay!",
+  "RepoUrl": "https://github.com/n0way02/PetFrenzy",
+  "IconUrl": "https://raw.githubusercontent.com/n0way02/PetFrenzy/main/images/icon.png",
+  "Tags": [
+    "Pet",
+    "Tamagotchi",
+    "Fun",
+    "Companion",
+    "HUD",
+    "Carbuncle",
+    "Moogle",
+    "Namazu"
+  ],
+  "DalamudApiLevel": 15
+}
