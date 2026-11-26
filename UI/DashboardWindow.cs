@@ -1108,8 +1108,8 @@ public sealed class DashboardWindow : Window
         using (UiCard.Begin(L.T("Chat Commands", "Comandos de Chat")))
         {
             UiControls.InsetNote(
-                "/petfrenzy  |  /pet  —  " + L.T("Open or close the PetFrenzy Dashboard", "Abre ou fecha o painel do PetFrenzy") + "\n" +
-                "/pet hud  —  " + L.T("Toggle the floating Pet HUD on/off", "Liga ou desliga o HUD flutuante do Pet"),
+                "/petfrenzy  |  /pf  —  " + L.T("Open or close the PetFrenzy Dashboard", "Abre ou fecha o painel do PetFrenzy") + "\n" +
+                "/pf hud  —  " + L.T("Toggle the floating Pet HUD on/off", "Liga ou desliga o HUD flutuante do Pet"),
                 Theme.TextLight);
         }
 

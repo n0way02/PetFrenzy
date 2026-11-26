@@ -105,8 +105,8 @@ public sealed class TutorialOverlay
             RequiredTabKey: "tab_mypet",
             TitleEn: "You're All Set! Have Fun! ♥",
             TitlePt: "Tudo Pronto! Boa Aventura! ♥",
-            BodyEn: "Use /pet to open or close this dashboard, and /pet hud to toggle your floating companion.\n\nYou can replay this tutorial anytime from the 'About' tab. Purrrr~ ♥",
-            BodyPt: "Use /pet para abrir ou fechar este painel, e /pet hud para mostrar ou esconder o pet flutuante.\n\nVocê pode rever este tutorial quando quiser na aba 'Sobre'. Ronron~ ♥",
+            BodyEn: "Use /pf or /petfrenzy to open or close this dashboard, and /pf hud to toggle your floating companion.\n\nYou can replay this tutorial anytime from the 'About' tab. Purrrr~ ♥",
+            BodyPt: "Use /pf ou /petfrenzy para abrir ou fechar este painel, e /pf hud para mostrar ou esconder o pet flutuante.\n\nVocê pode rever este tutorial quando quiser na aba 'Sobre'. Ronron~ ♥",
             MillyMood: PetMood.Celebrating,
             IsFinal: true),
     ];

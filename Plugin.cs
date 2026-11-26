@@ -12,7 +12,7 @@ namespace PetFrenzy;
 public sealed class Plugin : IDalamudPlugin
 {
     public const string CommandPrimary = "/petfrenzy";
-    public const string CommandAlias = "/pet";
+    public const string CommandAlias = "/pf";
 
     [PluginService] public static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
     [PluginService] public static ICommandManager CommandManager { get; private set; } = null!;
@@ -49,7 +49,7 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager.AddHandler(CommandPrimary, new CommandInfo(OnCommand)
         {
-            HelpMessage = "Open PetFrenzy Tamagotchi dashboard (or '/pet hud' to toggle floating HUD)."
+            HelpMessage = "Open PetFrenzy Tamagotchi dashboard (or '/pf hud' to toggle floating HUD)."
         });
 
         CommandManager.AddHandler(CommandAlias, new CommandInfo(OnCommand)
