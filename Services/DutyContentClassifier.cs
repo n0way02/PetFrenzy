@@ -16,14 +16,15 @@ public enum DutyCategory
     TreasureDungeon = 7,
     OceanFishing = 8,
     MaskedCarnivale = 9,
-    GoldSaucerDuty = 10,
-    AllianceRaid = 11,
-    FieldRaid = 12,
-    ExtremeTrial = 13,
-    ChaoticOrCriterion = 14,
-    SavageRaid = 15,
-    UltimateRaid = 16,
-    OtherDuty = 17,
+    BeastmasterCrucible = 10,
+    GoldSaucerDuty = 11,
+    AllianceRaid = 12,
+    FieldRaid = 13,
+    ExtremeTrial = 14,
+    ChaoticOrCriterion = 15,
+    SavageRaid = 16,
+    UltimateRaid = 17,
+    OtherDuty = 18,
 }
 
 public enum FieldZoneKind
@@ -64,7 +65,8 @@ public sealed class DutyContentClassifier
         [DutyCategory.Guildhest]          = new(DutyCategory.Guildhest,          "Guildhest",                  "Guildhest",                  18,   4,  20),
         [DutyCategory.GoldSaucerDuty]     = new(DutyCategory.GoldSaucerDuty,     "Gold Saucer Duty",           "Gold Saucer",                36,   6,  35),
         [DutyCategory.NormalTrial]        = new(DutyCategory.NormalTrial,        "Normal Trial",               "Trial Normal",               42,  10,  45),
-        [DutyCategory.MaskedCarnivale]    = new(DutyCategory.MaskedCarnivale,    "Masked Carnivale",           "Masked Carnivale",           48,  10,  50),
+        [DutyCategory.MaskedCarnivale]    = new(DutyCategory.MaskedCarnivale,    "Masked Carnivale (BLU)",     "Masked Carnivale (BLU)",     48,  10,  50),
+        [DutyCategory.BeastmasterCrucible]= new(DutyCategory.BeastmasterCrucible,"Crucible of Unbroken (BST)",  "Crucible (Beastmaster)",     66,  14,  75),
         [DutyCategory.NormalRaid]         = new(DutyCategory.NormalRaid,         "Normal Raid",                "Raid Normal",                54,  12,  55),
         [DutyCategory.PvP]                = new(DutyCategory.PvP,                "PvP (CC/Frontline/RW)",      "PvP (CC/Frontline/RW)",      60,  18,  65),
         [DutyCategory.OceanFishing]       = new(DutyCategory.OceanFishing,       "Ocean Fishing",              "Pesca Oceânica",             84,  18,  90),
@@ -285,8 +287,12 @@ public sealed class DutyContentClassifier
         if (contentTypeId == 9 || intendedUse == 27 || IsTreasureDungeonName(name) || IsTreasureDungeonName(placeName))
             return DutyCategory.TreasureDungeon;
 
-        if (contentTypeId == 27)
+        if (contentTypeId == 27 || name.Contains("Masked Carnivale", StringComparison.OrdinalIgnoreCase))
             return DutyCategory.MaskedCarnivale;
+
+        if (name.Contains("Crucible of the Unbroken", StringComparison.OrdinalIgnoreCase)
+            || placeName.Contains("Crucible of the Unbroken", StringComparison.OrdinalIgnoreCase))
+            return DutyCategory.BeastmasterCrucible;
 
         if (contentTypeId == 19)
             return DutyCategory.GoldSaucerDuty;

@@ -276,6 +276,24 @@ public static class JobWeaponRenderer
 
         switch (style)
         {
+            case JobWeaponStyle.AxeShield:
+            {
+                // Beastmaster one-handed battle axe + round buckler shield
+                dl.AddLine(R(o, 0, 14, angle, s), R(o, 0, -24, angle, s), wood, 3.2f * s);
+                dl.AddQuadFilled(
+                    R(o, 1, -22, angle, s), R(o, 14, -28, angle, s),
+                    R(o, 15, -10, angle, s), R(o, 1, -13, angle, s), silver);
+                dl.AddLine(R(o, 14, -28, angle, s), R(o, 15, -10, angle, s), edgeGlow, 2.0f * s);
+                dl.AddQuad(
+                    R(o, 1, -22, angle, s), R(o, 14, -28, angle, s),
+                    R(o, 15, -10, angle, s), R(o, 1, -13, angle, s), dark, 1.4f * s);
+                // Round Beastmaster buckler
+                var shPos = R(o, -9, -2, angle, s);
+                dl.AddCircleFilled(shPos, 8.5f * s, wood);
+                dl.AddCircle(shPos, 8.5f * s, gold, 18, 2.2f * s);
+                dl.AddCircleFilled(shPos, 2.8f * s, gold);
+                break;
+            }
             case JobWeaponStyle.Lance:
             {
                 dl.AddLine(R(o, 0, 26, angle, s), R(o, 0, -24, angle, s), wood, 3.2f * s);

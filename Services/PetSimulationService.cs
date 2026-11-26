@@ -57,6 +57,7 @@ public sealed unsafe class PetSimulationService : IDisposable
     private long lastGateRewardMs;
     private long lastSanctuaryRewardMs;
     private long lastCombatRewardMs;
+    private long lastLimitedJobRewardMs;
     private long lastHeadpatXpMs;
 
     // Live mood & speech bubble state
@@ -815,6 +816,39 @@ public sealed unsafe class PetSimulationService : IDisposable
                     L.T("Island Sanctuary Activity", "Atividade na Ilha Santuário"),
                     L.T("Cozy Island work! +18 Coins", "Ilha Santuário! +18 Moedas"),
                     celebrate: false, printChat: false);
+            }
+            return;
+        }
+
+        // 10. Limited Jobs: Blue Mage Spell Learned & Beastmaster Beast Tamed / Bestiary
+        if ((text.Contains("blue magic", StringComparison.OrdinalIgnoreCase) && text.Contains("learn", StringComparison.OrdinalIgnoreCase))
+            || text.Contains("青魔法", StringComparison.Ordinal))
+        {
+            if (now - lastLimitedJobRewardMs >= 15_000)
+            {
+                lastLimitedJobRewardMs = now;
+                GrantActivityReward(36, 45, 4f,
+                    L.T("Blue Magic Spell Learned (BLU)", "Magia Azul Aprendida (BLU)"),
+                    L.T("New Blue Magic!! +36 Coins!", "Nova Magia Azul!! +36 Moedas!"),
+                    celebrate: true, printChat: false);
+            }
+            return;
+        }
+
+        if ((CurrentJob.JobId == 43
+             && (text.Contains("bestiary", StringComparison.OrdinalIgnoreCase)
+                 || text.Contains("tamed", StringComparison.OrdinalIgnoreCase)
+                 || text.Contains("battlehorn", StringComparison.OrdinalIgnoreCase)
+                 || text.Contains("familiar", StringComparison.OrdinalIgnoreCase)))
+            || (text.Contains("Master's Bestiary", StringComparison.OrdinalIgnoreCase)))
+        {
+            if (now - lastLimitedJobRewardMs >= 15_000)
+            {
+                lastLimitedJobRewardMs = now;
+                GrantActivityReward(36, 45, 4f,
+                    L.T("Beast Tamed / Bestiary (BST)", "Fera Domada / Bestiário (BST)"),
+                    L.T("New Beast tamed!! +36 Coins!", "Nova Fera domada!! +36 Moedas!"),
+                    celebrate: true, printChat: false);
             }
             return;
         }

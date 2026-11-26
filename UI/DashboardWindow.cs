@@ -161,7 +161,7 @@ public sealed class DashboardWindow : Window
 
         ImGui.TextColored(Theme.YellowMain, "PETFRENZY");
         ImGui.SameLine();
-        ImGui.TextColored(Theme.TextMuted, $"v1.0.0.1  •  {pet.Name} (Lv.{pet.Level}/{PetStateData.MaxLevel})  •");
+        ImGui.TextColored(Theme.TextMuted, $"v1.0.0.2  •  {pet.Name} (Lv.{pet.Level}/{PetStateData.MaxLevel})  •");
         ImGui.SameLine();
         ImGui.TextColored(Theme.YellowMain, $"{pet.Coins:N0} {L.T("Coins", "Moedas")}");
 
@@ -868,6 +868,7 @@ public sealed class DashboardWindow : Window
                 ("Field Op FATE (Bozja / Eureka / OC)",     "FATE de Campo (Bozja / Eureka / OC)",    36,  45, false),
                 ("Cosmic Exploration Mission",              "Missão Exploração Cósmica",              36,  45, false),
                 ("Gold Saucer GATE",                        "Gold Saucer GATE",                       36,  45, false),
+                ("BLU Spell Learned / BST Beast Tamed",     "Magia BLU / Fera Domada (BST)",          36,  45, false),
                 ("Quest / Leve / Tribal Quest",             "Quest / Leve / Tribo",                   30,  40, false),
                 ("Normal FATE",                             "FATE Normal",                            26,  35, false),
                 ("Island Sanctuary",                        "Ilha Santuário",                         18,  22, false),
@@ -903,6 +904,7 @@ public sealed class DashboardWindow : Window
                 DutyCategory.GoldSaucerDuty,
                 DutyCategory.NormalTrial,
                 DutyCategory.MaskedCarnivale,
+                DutyCategory.BeastmasterCrucible,
                 DutyCategory.NormalRaid,
                 DutyCategory.PvP,
                 DutyCategory.OceanFishing,
@@ -1193,7 +1195,7 @@ public sealed class DashboardWindow : Window
         {
             ImGui.TextColored(Theme.TextWhite, "PetFrenzy — Eorzea Tamagotchi");
             ImGui.SameLine();
-            ImGui.TextColored(Theme.YellowMain, "v1.0.0.1");
+            ImGui.TextColored(Theme.YellowMain, "v1.0.0.2");
             ImGui.TextColored(Theme.TextMuted, L.T("Created with love by n0way02", "Criado com carinho por n0way02"));
             ImGui.Dummy(new Vector2(0, 6f));
 

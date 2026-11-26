@@ -20,6 +20,7 @@ public enum JobWeaponStyle
     Katana,
     Scythe,
     TwinBlades,
+    AxeShield, // Beastmaster (BST, Limited Job)
     // Physical Ranged
     Bow,
     Gun,
@@ -84,6 +85,7 @@ public static class JobWeaponCatalog
         34 => new(34, "SAM", JobWeaponStyle.Katana, JobCategoryKind.Combat),
         39 => new(39, "RPR", JobWeaponStyle.Scythe, JobCategoryKind.Combat),
         41 => new(41, "VPR", JobWeaponStyle.TwinBlades, JobCategoryKind.Combat),
+        43 => new(43, "BST", JobWeaponStyle.AxeShield, JobCategoryKind.Combat),
 
         // Physical Ranged DPS
         5 => new(5, "ARC", JobWeaponStyle.Bow, JobCategoryKind.Combat),
