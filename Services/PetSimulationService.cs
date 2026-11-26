@@ -22,7 +22,7 @@ public sealed class PetActivityLogItem
 
 public sealed unsafe class PetSimulationService : IDisposable
 {
-    private const float AfkSleepThresholdSec = 90f;
+    private const float AfkSleepThresholdSec = 900f; // 15 minutes AFK before auto-napping
     private const long SaveIntervalMs = 30_000;
 
     // 100% Hunger drains completely in 16 hours (100 / 57600 per second)
