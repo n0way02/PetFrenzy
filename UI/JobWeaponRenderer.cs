@@ -26,15 +26,28 @@ public static class JobWeaponRenderer
         if (isDrawn) return;
 
         var bs = s * 1.48f;
+        var isSheathedSword = style is JobWeaponStyle.Greatsword
+            or JobWeaponStyle.Gunblade
+            or JobWeaponStyle.SwordShield
+            or JobWeaponStyle.Katana
+            or JobWeaponStyle.RapierFocus
+            or JobWeaponStyle.TwinBlades
+            or JobWeaponStyle.TwinDaggers;
+
         var anchor = style switch
         {
             JobWeaponStyle.Book or JobWeaponStyle.StarGlobe or JobWeaponStyle.Chakrams or JobWeaponStyle.Potion
                 => petCenter + new Vector2(-40f * s, -10f * s),
             JobWeaponStyle.Fists
                 => petCenter + new Vector2(-36f * s, 4f * s),
+            _ when isSheathedSword
+                => petCenter + new Vector2(-4f * s, -8f * s),
             _ => petCenter + new Vector2(-8f * s, -5f * s),
         };
-        DrawWeaponShape(dl, anchor, bs, style, skin, angle: -0.64f, drawn: false, t);
+
+        // Swords on the back hang hilt-up / blade-down (just like in FFXIV!)
+        var angle = isSheathedSword ? (MathF.PI - 0.64f) : -0.64f;
+        DrawWeaponShape(dl, anchor, bs, style, skin, angle: angle, drawn: false, t);
     }
 
     public static void DrawFront(ImDrawListPtr dl, Vector2 petCenter, float s, JobWeaponStyle style, WeaponSkin skin, bool isDrawn, float t)
