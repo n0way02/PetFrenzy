@@ -12,6 +12,7 @@ public enum PetOutfit
     ArchmageRobe = 5,   // Lv. 65
     SeraphWings = 6,    // Lv. 80
     AstralWings = 7,    // Lv. 100 (Ultimate Flex!)
+    RedNecktie = 8,     // Lv. 15 (Classic Red Tie!)
 }
 
 public sealed record HatInfo(
@@ -53,6 +54,7 @@ public static class CosmeticCatalog
     [
         new(PetOutfit.None,         "None",                    "Nenhuma",               1,    0),
         new(PetOutfit.CozyScarf,    "Cozy Winter Scarf",       "Cachecol Quentinho",    10,   600),
+        new(PetOutfit.RedNecktie,   "Red Necktie",             "Gravata Vermelha",      15,   900),
         new(PetOutfit.HeroCape,     "Hero's Cape",             "Capa de Herói",         25,   1400),
         new(PetOutfit.DapperTux,    "Dapper Bowtie & Vest",    "Smoking Elegante",      35,   2100),
         new(PetOutfit.KnightArmor,  "Paladin Armor & Mantle",  "Armadura de Paladino",  50,   3400),

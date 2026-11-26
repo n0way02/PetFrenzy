@@ -16,6 +16,7 @@ public static class L
         PetSpecies.Moogle => "Moogle",
         PetSpecies.Namazu => "Namazu",
         PetSpecies.FluffyKitty => T("Fluffy Kitty ★", "Gatinha Peluda ★"),
+        PetSpecies.ShepherdDog => T("Fluffy Shepherd", "Pastor Alemão"),
         _ => sp.ToString(),
     };
 

@@ -175,10 +175,15 @@ public static class PetCanvasRenderer
                 DrawFluffyKitty(dl, petCenter, ps, mood, timeSec, cBody, cAccent, cDetail);
                 dl.PopClipRect();
                 break;
+            case PetSpecies.ShepherdDog:
+                dl.PushClipRectFullScreen();
+                DrawShepherdDog(dl, petCenter, ps, mood, timeSec, cBody, cAccent, cDetail);
+                dl.PopClipRect();
+                break;
         }
 
-        // Draw front-layer outfits (Scarf, Tuxedo, Hero Clasp, Knight Armor, Archmage Robe) ON pet body!
-        if (pet.EquippedOutfit is PetOutfit.CozyScarf or PetOutfit.DapperTux or PetOutfit.HeroCape or PetOutfit.KnightArmor or PetOutfit.ArchmageRobe)
+        // Draw front-layer outfits (Scarf, Red Necktie, Tuxedo, Hero Clasp, Knight Armor, Archmage Robe) ON pet body!
+        if (pet.EquippedOutfit is PetOutfit.CozyScarf or PetOutfit.RedNecktie or PetOutfit.DapperTux or PetOutfit.HeroCape or PetOutfit.KnightArmor or PetOutfit.ArchmageRobe)
         {
             dl.PushClipRectFullScreen();
             DrawOutfitFront(dl, petCenter, ps, pet.Species, pet.EquippedOutfit, timeSec);
@@ -216,6 +221,7 @@ public static class PetCanvasRenderer
         var (shellCol, spotCol) = sp switch
         {
             PetSpecies.Carbuncle => (Theme.Rgba(0.75f, 0.96f, 0.92f), Theme.Rgba(0.18f, 0.80f, 0.72f)),
+            PetSpecies.ShepherdDog => (Theme.Rgba(0.84f, 0.66f, 0.42f), Theme.Rgba(0.18f, 0.14f, 0.14f)),
             PetSpecies.FatCat => (Theme.Rgba(0.95f, 0.92f, 0.86f), Theme.Rgba(0.55f, 0.52f, 0.60f)),
             PetSpecies.Moogle => (Theme.Rgba(0.98f, 0.96f, 1.00f), Theme.Rgba(0.95f, 0.45f, 0.65f)),
             PetSpecies.FluffyKitty => (Theme.Rgba(0.88f, 0.81f, 0.72f), Theme.Rgba(0.16f, 0.13f, 0.15f)),
@@ -478,6 +484,142 @@ public static class PetCanvasRenderer
         dl.AddLine(fc + new Vector2(0, 8.4f * s), fc + new Vector2(3.5f * s, 6.2f * s), softCream, 1.5f * s);
     }
 
+    private static void DrawShepherdDog(ImDrawListPtr dl, Vector2 c, float s, PetMood mood, float t, uint tanFur, uint blackMantle, uint amberEye)
+    {
+        var outline = Theme.Rgba(0.10f, 0.04f, 0.08f);
+        var tanV = ImGui.ColorConvertU32ToFloat4(tanFur);
+        var creamChest = Theme.Rgba(MathF.Min(1f, tanV.X + 0.16f), MathF.Min(1f, tanV.Y + 0.18f), MathF.Min(1f, tanV.Z + 0.20f));
+        var earInner = Theme.Rgba(MathF.Min(1f, tanV.X + 0.10f), MathF.Min(1f, tanV.Y + 0.10f), MathF.Min(1f, tanV.Z + 0.10f));
+        var warmShadow = Theme.Rgba(tanV.X * 0.78f, tanV.Y * 0.76f, tanV.Z * 0.74f);
+        var tonguePink = Theme.Rgba(0.97f, 0.50f, 0.62f);
+
+        // Bushy shepherd tail wagging joyfully behind the body!
+        var wagSpeed = mood is PetMood.Happy or PetMood.Petted or PetMood.Celebrating or PetMood.Cheering ? 9.0f : 3.6f;
+        var wag = MathF.Sin(t * wagSpeed) * 7f * s;
+        var tailBase = c + new Vector2(24f * s, 12f * s);
+        var tailMid = c + new Vector2(36f * s + wag * 0.5f, 2f * s);
+        var tailTip = c + new Vector2(40f * s + wag, -11f * s);
+        dl.AddCircleFilled(tailBase + new Vector2(5f * s, -2f * s), 7.5f * s, tanFur);
+        dl.AddCircleFilled(tailMid, 8.2f * s, tanFur);
+        dl.AddCircleFilled(tailTip, 6.8f * s, blackMantle);
+        dl.AddCircle(tailMid, 8.2f * s, outline, 14, 1.4f * s);
+        dl.AddCircle(tailTip, 6.8f * s, outline, 14, 1.4f * s);
+
+        // Tall, pointy fluffy German Shepherd ears (black outside, warm tan fluff inside)
+        var earTwitch = MathF.Sin(t * 2.6f) * 1.4f * s;
+        var lEar1 = c + new Vector2(-23f * s, -11f * s);
+        var lEar2 = c + new Vector2(-20f * s - earTwitch, -39f * s);
+        var lEar3 = c + new Vector2(-6f * s, -18f * s);
+        dl.AddTriangleFilled(lEar1, lEar2, lEar3, blackMantle);
+        dl.AddTriangleFilled(c + new Vector2(-19f * s, -14f * s), c + new Vector2(-18f * s - earTwitch * 0.7f, -32f * s), c + new Vector2(-10f * s, -17f * s), earInner);
+        dl.AddTriangle(lEar1, lEar2, lEar3, outline, 2.0f * s);
+
+        var rEar1 = c + new Vector2(23f * s, -11f * s);
+        var rEar2 = c + new Vector2(20f * s + earTwitch, -39f * s);
+        var rEar3 = c + new Vector2(6f * s, -18f * s);
+        dl.AddTriangleFilled(rEar1, rEar2, rEar3, blackMantle);
+        dl.AddTriangleFilled(c + new Vector2(19f * s, -14f * s), c + new Vector2(18f * s + earTwitch * 0.7f, -32f * s), c + new Vector2(10f * s, -17f * s), earInner);
+        dl.AddTriangle(rEar1, rEar2, rEar3, outline, 2.0f * s);
+
+        // Main fluffy body (rich golden-tan fur + black saddle/mantle on upper back/shoulders)
+        dl.AddEllipseFilled(c + new Vector2(0, 5f * s), new Vector2(31f * s, 25.5f * s), tanFur);
+        // Dark saddle / shoulder ruff peeking along top & sides
+        dl.AddEllipseFilled(c + new Vector2(0, -5f * s), new Vector2(27f * s, 14f * s), blackMantle);
+        // Fluffy golden-tan face & cheek mane
+        dl.AddEllipseFilled(c + new Vector2(0, 1f * s), new Vector2(24f * s, 19.5f * s), tanFur);
+        dl.AddCircleFilled(c + new Vector2(-22f * s, 7f * s), 9.5f * s, tanFur);
+        dl.AddCircleFilled(c + new Vector2(22f * s, 7f * s), 9.5f * s, tanFur);
+        // Fluffy lighter mane ruff on the chest (matches the photo's soft cream neck fur!)
+        dl.AddEllipseFilled(c + new Vector2(0, 18f * s), new Vector2(17f * s, 10.5f * s), creamChest);
+        dl.AddCircleFilled(c + new Vector2(-9f * s, 17f * s), 6.5f * s, creamChest);
+        dl.AddCircleFilled(c + new Vector2(9f * s, 17f * s), 6.5f * s, creamChest);
+        dl.AddEllipse(c + new Vector2(0, 5f * s), new Vector2(31f * s, 25.5f * s), outline, 0f, 32, 2.1f * s);
+
+        // Fluffy tan front paws resting neatly
+        dl.AddEllipseFilled(c + new Vector2(-13f * s, 26.5f * s), new Vector2(7.5f * s, 4.5f * s), warmShadow);
+        dl.AddEllipse(c + new Vector2(-13f * s, 26.5f * s), new Vector2(7.5f * s, 4.5f * s), outline, 0f, 14, 1.5f * s);
+        dl.AddEllipseFilled(c + new Vector2(13f * s, 26.5f * s), new Vector2(7.5f * s, 4.5f * s), warmShadow);
+        dl.AddEllipse(c + new Vector2(13f * s, 26.5f * s), new Vector2(7.5f * s, 4.5f * s), outline, 0f, 14, 1.5f * s);
+
+        // Characteristic dark shepherd muzzle mask
+        var fc = c + new Vector2(0, 1f * s);
+        dl.AddEllipseFilled(fc + new Vector2(0, 6.2f * s), new Vector2(11.5f * s, 7.8f * s), blackMantle);
+        // Little tan eyebrows above eyes
+        dl.AddEllipseFilled(fc + new Vector2(-9.5f * s, -8.5f * s), new Vector2(3.6f * s, 2.0f * s), creamChest);
+        dl.AddEllipseFilled(fc + new Vector2(9.5f * s, -8.5f * s), new Vector2(3.6f * s, 2.0f * s), creamChest);
+
+        // Expressive amber / honey eyes
+        var isBlinking = (t % 4.4f) > 4.22f;
+        var leftEye = fc + new Vector2(-9.5f * s, -2.5f * s);
+        var rightEye = fc + new Vector2(9.5f * s, -2.5f * s);
+
+        if (mood == PetMood.Sleeping || isBlinking)
+        {
+            dl.AddLine(leftEye + new Vector2(-4f * s, 0), leftEye + new Vector2(4f * s, 0), outline, 2.2f * s);
+            dl.AddLine(rightEye + new Vector2(-4f * s, 0), rightEye + new Vector2(4f * s, 0), outline, 2.2f * s);
+        }
+        else if (mood is PetMood.Happy or PetMood.Petted or PetMood.Celebrating)
+        {
+            dl.AddLine(leftEye + new Vector2(-4f * s, 2f * s), leftEye + new Vector2(0, -3f * s), outline, 2.3f * s);
+            dl.AddLine(leftEye + new Vector2(0, -3f * s), leftEye + new Vector2(4f * s, 2f * s), outline, 2.3f * s);
+            dl.AddLine(rightEye + new Vector2(-4f * s, 2f * s), rightEye + new Vector2(0, -3f * s), outline, 2.3f * s);
+            dl.AddLine(rightEye + new Vector2(0, -3f * s), rightEye + new Vector2(4f * s, 2f * s), outline, 2.3f * s);
+        }
+        else if (mood == PetMood.Crying)
+        {
+            dl.AddLine(leftEye + new Vector2(-3.5f * s, -3f * s), leftEye + new Vector2(3.5f * s, 3f * s), outline, 2.2f * s);
+            dl.AddLine(leftEye + new Vector2(-3.5f * s, 3f * s), leftEye + new Vector2(3.5f * s, -3f * s), outline, 2.2f * s);
+            dl.AddLine(rightEye + new Vector2(-3.5f * s, -3f * s), rightEye + new Vector2(3.5f * s, 3f * s), outline, 2.2f * s);
+            dl.AddLine(rightEye + new Vector2(-3.5f * s, 3f * s), rightEye + new Vector2(3.5f * s, -3f * s), outline, 2.2f * s);
+        }
+        else if (mood == PetMood.Panic)
+        {
+            dl.AddCircleFilled(leftEye, 5.0f * s, Theme.Rgba(1f, 1f, 1f));
+            dl.AddCircle(leftEye, 5.0f * s, outline, 16, 1.7f * s);
+            dl.AddCircleFilled(leftEye, 2.0f * s, outline);
+            dl.AddCircleFilled(rightEye, 5.0f * s, Theme.Rgba(1f, 1f, 1f));
+            dl.AddCircle(rightEye, 5.0f * s, outline, 16, 1.7f * s);
+            dl.AddCircleFilled(rightEye, 2.0f * s, outline);
+        }
+        else
+        {
+            // Warm amber iris + dark pupil + sparkle highlight
+            dl.AddCircleFilled(leftEye, 4.3f * s, amberEye);
+            dl.AddCircleFilled(leftEye, 2.3f * s, outline);
+            dl.AddCircleFilled(leftEye + new Vector2(-1.2f * s, -1.3f * s), 1.2f * s, Theme.Rgba(1f, 1f, 1f));
+            dl.AddCircle(leftEye, 4.3f * s, outline, 14, 1.2f * s);
+
+            dl.AddCircleFilled(rightEye, 4.3f * s, amberEye);
+            dl.AddCircleFilled(rightEye, 2.3f * s, outline);
+            dl.AddCircleFilled(rightEye + new Vector2(-1.2f * s, -1.3f * s), 1.2f * s, Theme.Rgba(1f, 1f, 1f));
+            dl.AddCircle(rightEye, 4.3f * s, outline, 14, 1.2f * s);
+
+            if (mood == PetMood.Cheering)
+            {
+                // Fierce guard-dog eyebrows in combat!
+                dl.AddLine(leftEye + new Vector2(-5.5f * s, -7.2f * s), leftEye + new Vector2(4.5f * s, -3.2f * s), outline, 2.4f * s);
+                dl.AddLine(rightEye + new Vector2(5.5f * s, -7.2f * s), rightEye + new Vector2(-4.5f * s, -3.2f * s), outline, 2.4f * s);
+            }
+        }
+
+        // Shiny black dog nose
+        dl.AddEllipseFilled(fc + new Vector2(0, 3.4f * s), new Vector2(4.2f * s, 2.8f * s), Theme.Rgba(0.05f, 0.04f, 0.06f));
+        dl.AddCircleFilled(fc + new Vector2(-1.2f * s, 2.5f * s), 1.0f * s, Theme.Rgba(0.85f, 0.85f, 0.90f, 0.75f));
+
+        // Happy pink doggy tongue sticking out (just like the photo!) when cheerful/idle/excited
+        if (mood is PetMood.Idle or PetMood.Happy or PetMood.Petted or PetMood.Celebrating or PetMood.Cheering)
+        {
+            var pant = MathF.Sin(t * 7.5f) * 0.9f * s;
+            dl.AddEllipseFilled(fc + new Vector2(0, 10.6f * s + pant), new Vector2(3.4f * s, 4.4f * s), tonguePink);
+            dl.AddEllipse(fc + new Vector2(0, 10.6f * s + pant), new Vector2(3.4f * s, 4.4f * s), outline, 0f, 12, 1.2f * s);
+            dl.AddLine(fc + new Vector2(0, 7.6f * s), fc + new Vector2(0, 12.2f * s + pant), Theme.Rgba(0.82f, 0.30f, 0.44f), 1.1f * s);
+        }
+
+        // Cute doggy muzzle smile lines
+        dl.AddLine(fc + new Vector2(0, 6.0f * s), fc + new Vector2(-4.5f * s, 8.6f * s), creamChest, 1.5f * s);
+        dl.AddLine(fc + new Vector2(0, 6.0f * s), fc + new Vector2(4.5f * s, 8.6f * s), creamChest, 1.5f * s);
+    }
+
     private static void DrawCuteFace(ImDrawListPtr dl, Vector2 fc, float s, PetMood mood, float t, uint detailCol, bool skipMouth = false)
     {
         var dark = Theme.Rgba(0.10f, 0.02f, 0.18f);
@@ -689,6 +831,7 @@ public static class PetCanvasRenderer
         PetSpecies.FatCat => (c + new Vector2(0, 6f * s), 33f * s, 26f * s),
         PetSpecies.Moogle => (c + new Vector2(0, 4f * s), 27f * s, 25f * s),
         PetSpecies.FluffyKitty => (c + new Vector2(0, 5f * s), 30f * s, 25f * s),
+        PetSpecies.ShepherdDog => (c + new Vector2(0, 5f * s), 31f * s, 25.5f * s),
         _ => (c + new Vector2(0, 4f * s), 30f * s, 25f * s),
     };
 
@@ -908,6 +1051,45 @@ public static class PetCanvasRenderer
                 dl.AddQuad(tail1, tail2, tail3, tail4, outline, 1.5f * s);
                 dl.AddCircleFilled(knot, 3.8f * s, red);
                 dl.AddCircle(knot, 3.8f * s, outline, 12, 1.4f * s);
+                break;
+            }
+            case PetOutfit.RedNecktie:
+            {
+                // Sleek red collar band + classic bright red necktie (Lv. 15 outfit!)
+                var tieRed = Theme.Rgba(0.90f, 0.11f, 0.18f);
+                var tieShade = Theme.Rgba(0.68f, 0.06f, 0.12f);
+                var sway = MathF.Sin(t * 3.4f) * 1.8f * s;
+
+                // Subtle neck strap hugging the chest
+                var neckY = bc.Y + ry * 0.42f;
+                dl.AddLine(new Vector2(bc.X - rx * 0.56f, neckY - 2f * s), new Vector2(bc.X, neckY + 3f * s), tieShade, 3.0f * s);
+                dl.AddLine(new Vector2(bc.X + rx * 0.56f, neckY - 2f * s), new Vector2(bc.X, neckY + 3f * s), tieShade, 3.0f * s);
+
+                // Hanging red tie blade with pointed tip
+                var knotPos = new Vector2(bc.X, neckY + 3.2f * s);
+                var bTopL = knotPos + new Vector2(-3.2f * s, 1.5f * s);
+                var bTopR = knotPos + new Vector2(3.2f * s, 1.5f * s);
+                var bMidR = knotPos + new Vector2(6.0f * s + sway * 0.7f, 15.5f * s);
+                var bTip  = knotPos + new Vector2(sway, 21.5f * s);
+                var bMidL = knotPos + new Vector2(-6.0f * s + sway * 0.7f, 15.5f * s);
+
+                dl.AddQuadFilled(bTopL, bTopR, bMidR, bMidL, tieRed);
+                dl.AddTriangleFilled(bMidL, bMidR, bTip, tieRed);
+                // Crisp outline around tie blade
+                dl.AddLine(bTopL, bMidL, outline, 1.5f * s);
+                dl.AddLine(bMidL, bTip, outline, 1.5f * s);
+                dl.AddLine(bTip, bMidR, outline, 1.5f * s);
+                dl.AddLine(bMidR, bTopR, outline, 1.5f * s);
+                // Subtle sheen highlight along the left edge
+                dl.AddLine(bTopL + new Vector2(1.4f * s, 2f * s), bMidL + new Vector2(2.2f * s, -1.5f * s), Theme.Rgba(1f, 0.55f, 0.60f, 0.55f), 1.4f * s);
+
+                // Windsor knot on top
+                var k1 = knotPos + new Vector2(-4.4f * s, -2.5f * s);
+                var k2 = knotPos + new Vector2(4.4f * s, -2.5f * s);
+                var k3 = knotPos + new Vector2(3.0f * s, 3.2f * s);
+                var k4 = knotPos + new Vector2(-3.0f * s, 3.2f * s);
+                dl.AddQuadFilled(k1, k2, k3, k4, tieRed);
+                dl.AddQuad(k1, k2, k3, k4, outline, 1.5f * s);
                 break;
             }
             case PetOutfit.DapperTux:
