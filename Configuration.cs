@@ -32,7 +32,10 @@ public sealed class Configuration : IPluginConfiguration
     public bool MultiplayerShareOwnPet { get; set; } = true;
     public bool MultiplayerShowWorldPets { get; set; } = true;
     public float MultiplayerWorldPetScale { get; set; } = 0.70f;
-    public float MultiplayerWorldPetHeightOffset { get; set; } = 0.19f;
+    /// <summary>0 = Above Nameplate, 1 = Above Head, 2 = Near Shoulder.</summary>
+    public int MultiplayerWorldPetAnchor { get; set; } = 0;
+    /// <summary>Screen-space pixel vertical fine-tune (-80..+80 px, zoom-independent).</summary>
+    public float MultiplayerWorldPetOffsetY { get; set; } = 0f;
     public float MultiplayerWorldMaxDistance { get; set; } = 40f;
     public bool MultiplayerShowWorldPetLabels { get; set; } = false;
     public bool MultiplayerShowPartyPets { get; set; } = true;

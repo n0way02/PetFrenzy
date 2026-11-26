@@ -1140,15 +1140,33 @@ public sealed class DashboardWindow : Window
 
                 if (cfg.MultiplayerShowWorldPets)
                 {
+                    // Anchor mode selector: Above Nameplate | Above Head | Near Shoulder
+                    var anchorMode = Math.Clamp(cfg.MultiplayerWorldPetAnchor, 0, 2);
+                    string[] anchorLabels =
+                    [
+                        L.T("Above Nameplate", "Acima do Nome"),
+                        L.T("Above Head", "Em cima da Cabeça"),
+                        L.T("Near Shoulder", "Perto do Ombro"),
+                    ];
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.TextColored(Theme.TextLight, L.T("Pet position on players", "Posição do pet nos jogadores"));
+                    ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 10f, UiCard.InnerWidth - 190f));
+                    ImGui.SetNextItemWidth(190f);
+                    if (ImGui.Combo("##mp_anchor", ref anchorMode, anchorLabels, anchorLabels.Length))
+                    {
+                        cfg.MultiplayerWorldPetAnchor = anchorMode;
+                        cfg.Save();
+                    }
+
                     var wScale = cfg.MultiplayerWorldPetScale;
                     if (UiControls.SettingSliderRow("mp_wscale",
-                        L.T("Above-name pet size", "Tamanho do pet acima do nome"), ref wScale, 0.30f, 0.90f, "%.2fx"))
+                        L.T("Nearby pet size", "Tamanho do pet na área"), ref wScale, 0.30f, 1.00f, "%.2fx"))
                     { cfg.MultiplayerWorldPetScale = wScale; cfg.Save(); }
 
-                    var wHeight = cfg.MultiplayerWorldPetHeightOffset;
-                    if (UiControls.SettingSliderRow("mp_wheight",
-                        L.T("Height above player head", "Altura acima da cabeça"), ref wHeight, 0.10f, 1.50f, "+%.2fm"))
-                    { cfg.MultiplayerWorldPetHeightOffset = wHeight; cfg.Save(); }
+                    var wOffset = cfg.MultiplayerWorldPetOffsetY;
+                    if (UiControls.SettingSliderRow("mp_woffset",
+                        L.T("Vertical fine-tune (zoom-safe)", "Ajuste vertical fino (fixo no zoom)"), ref wOffset, -80f, 80f, "%+.0f px"))
+                    { cfg.MultiplayerWorldPetOffsetY = wOffset; cfg.Save(); }
 
                     var wDist = cfg.MultiplayerWorldMaxDistance;
                     if (UiControls.SettingSliderRow("mp_wdist",
@@ -1157,7 +1175,7 @@ public sealed class DashboardWindow : Window
 
                     var wLabels = cfg.MultiplayerShowWorldPetLabels;
                     if (UiControls.SettingToggleRow("mp_wlabels",
-                        L.T("Show pet name & level under above-name pets", "Mostrar nome e nível abaixo dos pets na área"), ref wLabels))
+                        L.T("Show pet name & level under nearby pets", "Mostrar nome e nível abaixo dos pets na área"), ref wLabels))
                     { cfg.MultiplayerShowWorldPetLabels = wLabels; cfg.Save(); }
                 }
 

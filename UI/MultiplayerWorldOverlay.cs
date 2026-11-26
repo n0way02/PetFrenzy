@@ -4,14 +4,16 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Interface.Utility;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using PetFrenzy.Models;
 using PetFrenzy.Services;
 
 namespace PetFrenzy.UI;
 
 /// <summary>
-/// Renders other PetFrenzy players' companions directly above their in-game nameplates
-/// using 3D -> 2D WorldToScreen projection on ImGui's background draw list (click-through).
+/// Renders other PetFrenzy players' companions in world space (Above Nameplate, Above Head, or Near Shoulder)
+/// using FFXIV's native GetNamePlateWorldPosition / GetHeight + screen-space pixel anchoring so zoom NEVER drifts.
 /// </summary>
 public sealed class MultiplayerWorldOverlay
 {
@@ -31,9 +33,11 @@ public sealed class MultiplayerWorldOverlay
 
         var localPos = local.Position;
         var maxDistSq = cfg.MultiplayerWorldMaxDistance * cfg.MultiplayerWorldMaxDistance;
-        var scale = Math.Clamp(cfg.MultiplayerWorldPetScale, 0.28f, 0.95f);
-        var baseSizePx = 96f * scale;
-        var heightOffset = Math.Clamp(cfg.MultiplayerWorldPetHeightOffset, 0.05f, 1.80f);
+        var scale = Math.Clamp(cfg.MultiplayerWorldPetScale, 0.30f, 1.00f);
+        var uiScale = ImGuiHelpers.GlobalScale;
+        var baseSizePx = 88f * scale * uiScale;
+        var anchorMode = Math.Clamp(cfg.MultiplayerWorldPetAnchor, 0, 2);
+        var fineOffsetY = Math.Clamp(cfg.MultiplayerWorldPetOffsetY, -80f, 80f) * uiScale;
         var dl = ImGui.GetBackgroundDrawList();
         var animTime = Plugin.Sim.AnimTimeSec;
 
@@ -55,15 +59,27 @@ public sealed class MultiplayerWorldOverlay
             var distSq = Vector3.DistanceSquared(localPos, pc.Position);
             if (distSq > maxDistSq) continue;
 
-            // Project above the player's head / nameplate
-            var worldPos = pc.Position + new Vector3(0f, 1.85f + heightOffset, 0f);
-            if (!Plugin.GameGui.WorldToScreen(worldPos, out var screenPos))
+            // Compute exact native anchor point in 3D + zoom-independent 2D pixel offset!
+            var worldAnchor = ComputeAnchorWorldPos(pc, anchorMode);
+            if (!Plugin.GameGui.WorldToScreen(worldAnchor, out var screenPos))
                 continue;
 
-            // Subtle perspective shrink with distance (stays crisp up close, slightly smaller far away)
+            // Gentle distance scaling (Nameplate mode stays mostly constant like FFXIV nameplates!)
             var dist = MathF.Sqrt(distSq);
-            var distFactor = Math.Clamp(1.08f - dist * 0.012f, 0.65f, 1.05f);
+            var distFactor = anchorMode == 0
+                ? Math.Clamp(1.02f - dist * 0.005f, 0.80f, 1.02f)
+                : Math.Clamp(1.08f - dist * 0.010f, 0.68f, 1.08f);
             var sizePx = baseSizePx * distFactor;
+
+            // Zoom-independent 2D screen-space offset
+            var screenOffsetY = anchorMode switch
+            {
+                0 => -44f * uiScale + fineOffsetY, // Sits cleanly right above Name + Title!
+                1 => -6f * uiScale + fineOffsetY,  // Perched right on top of the character's head
+                _ => 12f * uiScale + fineOffsetY,  // Floating beside the character's shoulder
+            };
+
+            var anchorY = screenPos.Y + screenOffsetY;
 
             // Instant local status reaction for 0ms combat / death responsiveness
             var liveMood = peer.Mood;
@@ -81,7 +97,7 @@ public sealed class MultiplayerWorldOverlay
             }
 
             var weaponStyle = peer.ShowWeapon ? peer.Job.Weapon : JobWeaponStyle.None;
-            var minPos = new Vector2(screenPos.X - sizePx * 0.5f, screenPos.Y - sizePx * 0.92f);
+            var minPos = new Vector2(screenPos.X - sizePx * 0.5f, anchorY - sizePx * 0.88f);
 
             PetCanvasRenderer.DrawPetInDrawList(
                 dl,
@@ -123,5 +139,46 @@ public sealed class MultiplayerWorldOverlay
                 dl.AddText(new Vector2(lMin.X + 5f, lMin.Y + 1f), Theme.Rgba(0.95f, 0.93f, 1.0f, 0.92f), lbl);
             }
         }
+    }
+
+    private static unsafe Vector3 ComputeAnchorWorldPos(IPlayerCharacter pc, int anchorMode)
+    {
+        var basePos = pc.Position;
+        var modelHeight = 1.65f;
+
+        if (pc.Address != nint.Zero)
+        {
+            var go = (GameObject*)pc.Address;
+            if (go != null)
+            {
+                var h = go->GetHeight();
+                if (h > 0.35f && h < 4.5f)
+                    modelHeight = h;
+
+                if (anchorMode == 0)
+                {
+                    // FFXIV's exact native nameplate 3D anchor (automatically handles race height, mounts, sitting, etc.!)
+                    FFXIVClientStructs.FFXIV.Common.Math.Vector3 npPos = default;
+                    go->GetNamePlateWorldPosition(&npPos);
+                    if (npPos.Y != 0f || npPos.X != 0f || npPos.Z != 0f)
+                        return new Vector3(npPos.X, npPos.Y, npPos.Z);
+                }
+            }
+        }
+
+        if (anchorMode == 2)
+        {
+            // Near Shoulder: float beside the character's right shoulder in 3D space
+            var rot = pc.Rotation;
+            var rightX = MathF.Cos(rot);
+            var rightZ = -MathF.Sin(rot);
+            return new Vector3(
+                basePos.X + rightX * 0.44f,
+                basePos.Y + modelHeight * 0.80f,
+                basePos.Z + rightZ * 0.44f);
+        }
+
+        // Above Head (or fallback for Above Nameplate): exact top of model head
+        return new Vector3(basePos.X, basePos.Y + modelHeight, basePos.Z);
     }
 }
