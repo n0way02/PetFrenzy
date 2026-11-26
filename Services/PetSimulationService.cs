@@ -975,16 +975,26 @@ public sealed unsafe class PetSimulationService : IDisposable
         }
     }
 
-    // SHA-256 hash of creator character name (keeps exclusive pet unlock private)
+    // SHA-256 hashes (keeps exclusive unlocks private)
     private const string CreatorCharacterHash = "3a748b1dfad8ca0e19afbc57636f872c83746b348fc9ceeae1ce1f7770de4e00";
+    private static readonly HashSet<string> FluffyKittyAllowedHashes = new(StringComparer.Ordinal)
+    {
+        CreatorCharacterHash,
+        "4c63322ec87f3f622e15ed19aacb6054d392c3c831809df7d892ecad2b6c17fa",
+    };
 
-    public bool IsCreatorCharacter()
+    private static string? GetLocalPlayerHash()
     {
         var name = Plugin.ObjectTable.LocalPlayer?.Name.ToString();
-        if (string.IsNullOrWhiteSpace(name)) return false;
-        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(name.Trim().ToLowerInvariant()))).ToLowerInvariant();
-        return string.Equals(hash, CreatorCharacterHash, StringComparison.Ordinal);
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(name.Trim().ToLowerInvariant()))).ToLowerInvariant();
     }
+
+    public bool IsCreatorCharacter()
+        => string.Equals(GetLocalPlayerHash(), CreatorCharacterHash, StringComparison.Ordinal);
+
+    public bool CanAdoptFluffyKitty()
+        => GetLocalPlayerHash() is { } h && FluffyKittyAllowedHashes.Contains(h);
 
     // ---- Creator-Only Dev / Sandbox Helpers (strictly locked to creator hash) ----
     public void DevSimulateOfflineHours(float hours)
@@ -1074,7 +1084,7 @@ public sealed unsafe class PetSimulationService : IDisposable
 
     public void AdoptNewEgg(PetSpecies species, string customName, bool keepLevelAndStats)
     {
-        if (species == PetSpecies.FluffyKitty && !IsCreatorCharacter())
+        if (species == PetSpecies.FluffyKitty && !CanAdoptFluffyKitty())
             return;
 
         var pet = Plugin.Config.Pet;

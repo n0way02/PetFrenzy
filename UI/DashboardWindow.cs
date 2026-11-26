@@ -161,7 +161,7 @@ public sealed class DashboardWindow : Window
 
         ImGui.TextColored(Theme.YellowMain, "PETFRENZY");
         ImGui.SameLine();
-        ImGui.TextColored(Theme.TextMuted, $"v1.0.0.2  •  {pet.Name} (Lv.{pet.Level}/{PetStateData.MaxLevel})  •");
+        ImGui.TextColored(Theme.TextMuted, $"v1.0.0.3  •  {pet.Name} (Lv.{pet.Level}/{PetStateData.MaxLevel})  •");
         ImGui.SameLine();
         ImGui.TextColored(Theme.YellowMain, $"{pet.Coins:N0} {L.T("Coins", "Moedas")}");
 
@@ -980,9 +980,9 @@ public sealed class DashboardWindow : Window
             "Escolha qualquer mascote abaixo. Seu novo amigo começa como um Ovo animado que aquece enquanto você joga (ou clique no ovo para chocar mais rápido!)."));
         ImGui.Spacing();
 
-        var isCreator = Plugin.Sim.IsCreatorCharacter();
+        var canAdoptKitty = Plugin.Sim.CanAdoptFluffyKitty();
         var species = Enum.GetValues<PetSpecies>()
-            .Where(sp => sp != PetSpecies.FluffyKitty || isCreator)
+            .Where(sp => sp != PetSpecies.FluffyKitty || canAdoptKitty)
             .ToArray();
         var availW = ImGui.GetContentRegionAvail().X;
         var cols = availW >= 740f ? species.Length : Math.Min(3, species.Length);
@@ -1195,7 +1195,7 @@ public sealed class DashboardWindow : Window
         {
             ImGui.TextColored(Theme.TextWhite, "PetFrenzy — Eorzea Tamagotchi");
             ImGui.SameLine();
-            ImGui.TextColored(Theme.YellowMain, "v1.0.0.2");
+            ImGui.TextColored(Theme.YellowMain, "v1.0.0.3");
             ImGui.TextColored(Theme.TextMuted, L.T("Created with love by n0way02", "Criado com carinho por n0way02"));
             ImGui.Dummy(new Vector2(0, 6f));
 
