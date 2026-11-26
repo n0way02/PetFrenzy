@@ -31,9 +31,9 @@ public sealed class Configuration : IPluginConfiguration
     public bool MultiplayerEnabled { get; set; } = true;
     public bool MultiplayerShareOwnPet { get; set; } = true;
     public bool MultiplayerShowWorldPets { get; set; } = true;
-    public float MultiplayerWorldPetScale { get; set; } = 0.48f;
-    public float MultiplayerWorldPetHeightOffset { get; set; } = 0.58f;
-    public float MultiplayerWorldMaxDistance { get; set; } = 35f;
+    public float MultiplayerWorldPetScale { get; set; } = 0.70f;
+    public float MultiplayerWorldPetHeightOffset { get; set; } = 0.19f;
+    public float MultiplayerWorldMaxDistance { get; set; } = 40f;
     public bool MultiplayerShowWorldPetLabels { get; set; } = false;
     public bool MultiplayerShowPartyPets { get; set; } = true;
     public float MultiplayerPartyPetScale { get; set; } = 0.85f;
