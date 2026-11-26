@@ -101,6 +101,15 @@ public sealed class TutorialOverlay
             MillyMood: PetMood.Cheering),
 
         new(
+            TargetKey: "settings_mp_card",
+            RequiredTabKey: "tab_settings",
+            TitleEn: "8. Live Multiplayer — Area & Party Pets!",
+            TitlePt: "8. Multiplayer ao Vivo — Pets na Área e Party!",
+            BodyEn: "See other PetFrenzy players' companions live!\n• Nearby players in your zone show their animated pet right above their name.\n• Party & Cross-World Party friends get their own draggable HUD pets you can resize & arrange anywhere!\n• Toggle remote speech bubbles, height, distance & privacy anytime here.",
+            BodyPt: "Veja os mascotes de outros jogadores do PetFrenzy ao vivo!\n• Jogadores na mesma região mostram o pet animado acima do nome.\n• Amigos em Party (inclusive Cross-World!) aparecem soltos na tela para você arrastar e redimensionar!\n• Ajuste altura, distância, privacidade e balões de fala aqui.",
+            MillyMood: PetMood.Celebrating),
+
+        new(
             TargetKey: "",
             RequiredTabKey: "tab_mypet",
             TitleEn: "You're All Set! Have Fun! ♥",

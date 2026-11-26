@@ -95,8 +95,8 @@ public sealed class MultiplayerWorldOverlay
                 liveWeaponDrawn,
                 hovered: false);
 
-            // Optional mini speech bubble above the remote pet
-            if (cfg.ShowSpeechBubbles && !string.IsNullOrEmpty(peer.SpeechBubble) && dist < 24f)
+            // Optional mini speech bubble above the remote pet (off by default)
+            if (cfg.MultiplayerShowRemoteSpeechBubbles && !string.IsNullOrEmpty(peer.SpeechBubble) && dist < 24f)
             {
                 var txtSize = ImGui.CalcTextSize(peer.SpeechBubble);
                 var padX = 7f;

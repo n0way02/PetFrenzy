@@ -41,6 +41,7 @@ public sealed class Configuration : IPluginConfiguration
     public bool MultiplayerTransparentPartyPets { get; set; } = true;
     public bool MultiplayerShowPartyPetNames { get; set; } = true;
     public bool MultiplayerHideWorldPetForParty { get; set; } = true;
+    public bool MultiplayerShowRemoteSpeechBubbles { get; set; } = false;
 
     /// <summary>
     /// One-time migration field for older plain-text saves; automatically moved to encrypted pet.sav and cleared.

@@ -88,11 +88,31 @@ public sealed class PartyPetHudWindow : Window
                 }
             }
 
-            // Reserved top slot for speech bubble so pet doesn't jump
-            var bubbleSlotH = cfg.ShowSpeechBubbles ? 30f * scale : 0f;
+            // Pre-compute name pill width so the window auto-sizes cleanly without clipping long names!
+            var nameLabel = string.Empty;
+            var nameTxtSize = Vector2.Zero;
+            var pillW = 0f;
+            if (cfg.MultiplayerShowPartyPetNames)
+            {
+                var firstName = peer.PlayerName.Split(' ')[0];
+                nameLabel = peer.PetData.IsHatched
+                    ? $"{firstName} • {peer.PetData.Name}"
+                    : $"{firstName} • {L.T("Egg", "Ovo")}";
+                nameTxtSize = ImGui.CalcTextSize(nameLabel);
+                pillW = nameTxtSize.X + 18f;
+            }
+
+            var contentW = MathF.Max(canvasSize, pillW);
+
+            // Reserved top slot for speech bubble only when remote speech bubbles are enabled
+            var bubbleSlotH = cfg.MultiplayerShowRemoteSpeechBubbles ? 30f * scale : 0f;
             var bubbleOrigin = ImGui.GetCursorScreenPos();
             if (bubbleSlotH > 0f)
-                ImGui.Dummy(new Vector2(canvasSize, bubbleSlotH));
+                ImGui.Dummy(new Vector2(contentW, bubbleSlotH));
+
+            // Center the pet canvas horizontally inside contentW
+            if (contentW > canvasSize)
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (contentW - canvasSize) * 0.5f);
 
             var weaponStyle = peer.ShowWeapon ? peer.Job.Weapon : JobWeaponStyle.None;
             PetCanvasRenderer.DrawPetCanvas(
@@ -106,8 +126,8 @@ public sealed class PartyPetHudWindow : Window
                 weaponStyle: weaponStyle,
                 isWeaponDrawn: liveWeaponDrawn);
 
-            // Speech bubble if peer is saying something
-            if (cfg.ShowSpeechBubbles && !string.IsNullOrEmpty(peer.SpeechBubble))
+            // Speech bubble if remote speech bubbles are enabled and peer is saying something
+            if (cfg.MultiplayerShowRemoteSpeechBubbles && !string.IsNullOrEmpty(peer.SpeechBubble))
             {
                 var dl = ImGui.GetWindowDrawList();
                 dl.PushClipRectFullScreen();
@@ -116,7 +136,7 @@ public sealed class PartyPetHudWindow : Window
                 var padY = 4f * scale;
                 var bW = MathF.Max(58f * scale, txtSize.X + padX * 2f);
                 var bH = txtSize.Y + padY * 2f;
-                var centerX = bubbleOrigin.X + canvasSize * 0.5f;
+                var centerX = bubbleOrigin.X + contentW * 0.5f;
                 var bMaxY = bubbleOrigin.Y + bubbleSlotH - 4f * scale;
                 var bMin = new Vector2(centerX - bW * 0.5f, bMaxY - bH);
                 var bMax = new Vector2(centerX + bW * 0.5f, bMaxY);
@@ -143,24 +163,19 @@ public sealed class PartyPetHudWindow : Window
                 ImGui.EndTooltip();
             }
 
-            // Compact name pill below pet
+            // Full-width unclipped name pill centered below pet
             if (cfg.MultiplayerShowPartyPetNames)
             {
-                var firstName = peer.PlayerName.Split(' ')[0];
-                var label = peer.PetData.IsHatched
-                    ? $"{firstName} • {peer.PetData.Name}"
-                    : $"{firstName} • {L.T("Egg", "Ovo")}";
-                var txtSize = ImGui.CalcTextSize(label);
-                var pillW = MathF.Max(canvasSize, txtSize.X + 12f);
                 var cur = ImGui.GetCursorScreenPos();
-                var pMin = new Vector2(cur.X + (canvasSize - pillW) * 0.5f, cur.Y);
-                var pMax = new Vector2(pMin.X + pillW, pMin.Y + txtSize.Y + 4f);
+                var boxW = MathF.Max(pillW, MathF.Min(contentW, canvasSize));
+                var pMin = new Vector2(cur.X + (contentW - boxW) * 0.5f, cur.Y);
+                var pMax = new Vector2(pMin.X + boxW, pMin.Y + nameTxtSize.Y + 6f);
                 var dl = ImGui.GetWindowDrawList();
-                dl.AddRectFilled(pMin, pMax, Theme.Rgba(0.08f, 0.02f, 0.17f, 0.85f), 6f);
-                dl.AddRect(pMin, pMax, Theme.Rgba(0.62f, 0.42f, 0.96f, 0.45f), 6f);
-                dl.AddText(new Vector2(pMin.X + (pillW - txtSize.X) * 0.5f, pMin.Y + 2f),
-                    Theme.ColU32(Theme.TextLight), label);
-                ImGui.Dummy(new Vector2(canvasSize, txtSize.Y + 6f));
+                dl.AddRectFilled(pMin, pMax, Theme.Rgba(0.08f, 0.02f, 0.17f, 0.88f), 6f);
+                dl.AddRect(pMin, pMax, Theme.Rgba(0.62f, 0.42f, 0.96f, 0.50f), 6f);
+                dl.AddText(new Vector2(pMin.X + (boxW - nameTxtSize.X) * 0.5f, pMin.Y + 3f),
+                    Theme.ColU32(Theme.TextLight), nameLabel);
+                ImGui.Dummy(new Vector2(contentW, nameTxtSize.Y + 8f));
             }
         }
         finally

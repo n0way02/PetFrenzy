@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using PetFrenzy.Models;
 
 namespace PetFrenzy.Services;
@@ -177,15 +178,21 @@ public sealed class PetMultiplayerService : IDisposable
         lastSyncStartedMs = now;
         lastVisualSignature = sig;
 
-        // Collect party member keys on the main thread (PartyList is only safe on framework thread)
-        var partyKeys = new List<string>(8);
+        // Collect party member keys on the main thread (supports BOTH regular PartyList AND Cross-World Party!)
+        var partyKeySet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var myKey = MakePlayerKey(playerName, homeWorldId);
+
         foreach (var member in Plugin.PartyList)
         {
             var mKey = MakePlayerKey(member.Name.TextValue, member.World.RowId);
             if (!string.IsNullOrEmpty(mKey) && !string.Equals(mKey, myKey, StringComparison.OrdinalIgnoreCase))
-                partyKeys.Add(mKey);
+                partyKeySet.Add(mKey);
         }
+
+        // Cross-World Party (when outside a duty with friends on other worlds, PartyList is empty!)
+        CollectCrossRealmPartyKeys(myKey, partyKeySet);
+
+        var partyKeys = partyKeySet.ToList();
 
         var payload = new SyncRequestDto
         {
@@ -339,6 +346,25 @@ public sealed class PetMultiplayerService : IDisposable
             }
             catch { /* best effort */ }
         });
+    }
+
+    private static unsafe void CollectCrossRealmPartyKeys(string myKey, HashSet<string> partyKeySet)
+    {
+        var cr = InfoProxyCrossRealm.Instance();
+        if (cr == null || !cr->IsCrossRealm) return;
+
+        var groupIdx = cr->LocalPlayerGroupIndex;
+        if (groupIdx >= cr->CrossRealmGroups.Length) return;
+
+        var grp = cr->CrossRealmGroups[groupIdx];
+        var count = Math.Min((int)grp.GroupMemberCount, grp.GroupMembers.Length);
+        for (var i = 0; i < count; i++)
+        {
+            var m = grp.GroupMembers[i];
+            var mKey = MakePlayerKey(m.NameString, (uint)m.HomeWorld);
+            if (!string.IsNullOrEmpty(mKey) && !string.Equals(mKey, myKey, StringComparison.OrdinalIgnoreCase))
+                partyKeySet.Add(mKey);
+        }
     }
 
     private static Vector4 ToVec4(float[]? arr)

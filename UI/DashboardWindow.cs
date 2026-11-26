@@ -1105,6 +1105,7 @@ public sealed class DashboardWindow : Window
         var interCardMax = new Vector2(interCardMin.X + ImGui.GetContentRegionAvail().X, ImGui.GetCursorScreenPos().Y - 10f);
         Plugin.Tutorial.RegisterTargetRect("settings_inter_card", interCardMin, interCardMax);
 
+        var mpCardMin = ImGui.GetCursorScreenPos();
         using (UiCard.Begin(L.T("Multiplayer — Nearby & Party Pets (Beta)", "Multiplayer — Pets na Área & Party (Beta)")))
         {
             var mp = Plugin.Multiplayer;
@@ -1193,8 +1194,16 @@ public sealed class DashboardWindow : Window
                         L.T("Hide above-name pet for Party members", "Ocultar acima do nome para quem já está no HUD da Party"), ref hideDup))
                     { cfg.MultiplayerHideWorldPetForParty = hideDup; cfg.Save(); }
                 }
+
+                var remoteBubbles = cfg.MultiplayerShowRemoteSpeechBubbles;
+                if (UiControls.SettingToggleRow("mp_bubbles",
+                    L.T("Show speech bubbles from other players' pets", "Mostrar balões de fala dos pets de outros jogadores"), ref remoteBubbles,
+                    L.T("Off by default to keep your screen clean.", "Desligado por padrão para manter sua tela limpa.")))
+                { cfg.MultiplayerShowRemoteSpeechBubbles = remoteBubbles; cfg.Save(); }
             }
         }
+        var mpCardMax = new Vector2(mpCardMin.X + ImGui.GetContentRegionAvail().X, ImGui.GetCursorScreenPos().Y - 10f);
+        Plugin.Tutorial.RegisterTargetRect("settings_mp_card", mpCardMin, mpCardMax);
 
         using (UiCard.Begin(L.T("Chat Commands", "Comandos de Chat")))
         {
