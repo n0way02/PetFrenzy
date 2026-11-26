@@ -1,39 +1,30 @@
-# PetFrenzy
+# PetFrenzy — Eorzea Tamagotchi
 
-**An animated Eorzea Tamagotchi companion for Final Fantasy XIV (Dalamud API 15)!**
-
-Choose and hatch your own **Carbuncle**, **Fat Cat**, **Moogle**, or **Namazu** from an animated cracking egg, care for them in a sleek floating HUD, unlock wearable accessories as they evolve, and watch them react live to your FFXIV gameplay.
-
----
+An animated **Tamagotchi companion** for **Final Fantasy XIV** (Dalamud API 15) that hatches from an egg, lives in a sleek floating HUD, equips your current Job's weapon or crafting/gathering tool, and rewards you across **literally every FFXIV activity**!
 
 ## Features
+- **4 Iconic Eorzea Companions:** Hatch a **Carbuncle**, **Fat Cat**, **Moogle**, or **Namazu** from an animated egg.
+- **All 42 FFXIV Job Weapons & Tools:** Your companion carries your current Job's weapon on its back and draws it with a fierce battle expression in combat — or works alongside you when Crafting (DoH) and Gathering/Fishing (DoL)!
+- **Rewards From ALL FFXIV Content:** Earn **Pet Coins & XP** from Daily Roulettes, Dungeons, Variant/Criterion, Trials (Normal/Extreme/Unreal), Raids (Normal/Alliance/Chaotic/Savage/Ultimate), PvP, Deep Dungeons, Treasure Dungeons, Ocean Fishing, Masked Carnivale, FATEs, Bozja, Eureka, Occult Crescent, Cosmic Exploration, Hunts, Gold Saucer GATEs, Island Sanctuary, Crafting, Gathering, and online time.
+- **Lv. 100 Progression & Daily XP Pace:** Long-term progression up to **Lv. 100** with a fair daily soft-cap pace, 16-hour Hunger cycle, Activity Energy drain, Energy Potions, and non-lethal Hibernation (with a Free Wake-Up Snack).
+- **Wardrobe & Shop with Live Try-On:** Unlock **12 Hats**, **8 Outfits & Wings** (up to Lv. 100 *Astral Dragon Wings*), **6 animated Weapon Auras**, and a **Custom RGB Color Dye Kit**.
+- **Interactive Spotlight Tutorial & Bilingual UI:** Guided first-time walkthrough led by **Milly**, with instant **EN / PT-BR** switching and AES-256-GCM encrypted save protection.
 
-- **4 Iconic Eorzea Companions:** Choose **Carbuncle**, **Fat Cat**, **Moogle**, or **Namazu** — each starts as a themed animated **Egg** that warms up, cracks, and hatches with a celebration burst!
-- **Live Gameplay Reactions:**
-  - **In Combat:** Bounces and cheers for you!
-  - **Low HP (< 25%):** Panics and sweats (`"HEAL!! WATCH YOUR HP!!"`).
-  - **KO / Death:** Cries and mourns your fall.
-  - **AFK / Idle:** Curls up and naps (`Zzz...`) while recovering energy.
-  - **Gil Gains & Duty Clears:** Jumps with golden confetti and gains XP + Happiness!
-- **Casual Tamagotchi Care:** Feed snacks, give headpats (click directly on your pet!), toggle naps, and play the built-in **Catch the Golden Treat** mini-game. Your pet never dies in Casual Mode.
-- **Evolution & Unlockable Wardrobe:** Level up through **Baby → Young → Legendary** (golden aura!) and unlock **Cool Shades**, **Party Hat**, **Royal Crown**, **Golden Halo**, and the **n0way Wizard Hat**.
-- **Customizable Floating HUD:** Drag anywhere, toggle transparent/borderless background, scale (`0.75x – 1.6x`), lock position, auto-hide in cutscenes, and switch between **EN / PT-BR**.
-
----
-
-## Installation (Dalamud Custom Repository)
-
-Add the unified **n0way02** Dalamud repository in `/xlsettings` → **Experimental** → **Custom Plugin Repositories**:
+## Installation
+Add the unified **n0way Plugins** custom repository URL in `/xlsettings` → **Experimental** → **Custom Plugin Repositories**:
 
 ```text
-https://raw.githubusercontent.com/n0way02/DalamudPlugins/main/pluginmaster.json
+https://n0wayplugins.discloud.app/repo.json
 ```
+
+*(GitHub mirror: `https://raw.githubusercontent.com/n0way02/DalamudPlugins/main/pluginmaster.json`)*
 
 Then open `/xlplugins`, search for **PetFrenzy**, and install!
 
----
-
 ## Commands
+- `/pet` or `/petfrenzy` — Open/close the PetFrenzy Dashboard
+- `/pet hud` — Toggle the floating Pet HUD
 
-- `/petfrenzy` or `/pet` — Open/close the PetFrenzy Dashboard.
-- `/pet hud` — Toggle the floating Pet HUD.
+## Support
+- Website: https://n0wayplugins.discloud.app
+- Ko-fi: https://ko-fi.com/n0way02

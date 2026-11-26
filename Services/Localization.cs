@@ -15,6 +15,7 @@ public static class L
         PetSpecies.FatCat => "Fat Cat",
         PetSpecies.Moogle => "Moogle",
         PetSpecies.Namazu => "Namazu",
+        PetSpecies.FluffyKitty => T("Fluffy Kitty ★", "Gatinha Peluda ★"),
         _ => sp.ToString(),
     };
 
@@ -23,18 +24,20 @@ public static class L
         PetStage.Egg => T("Egg", "Ovo"),
         PetStage.Baby => T("Baby", "Filhote"),
         PetStage.Young => T("Young", "Jovem"),
+        PetStage.Veteran => T("Veteran", "Veterano"),
         PetStage.Legendary => T("Legendary", "Lendário"),
         _ => st.ToString(),
     };
 
-    public static string AccessoryName(PetAccessory acc) => acc switch
+    public static string AccessoryName(PetAccessory acc)
     {
-        PetAccessory.None => T("None", "Nenhum"),
-        PetAccessory.Sunglasses => T("Cool Shades", "Óculos Escuros"),
-        PetAccessory.PartyHat => T("Party Hat", "Chapéu de Festa"),
-        PetAccessory.RoyalCrown => T("Royal Crown", "Coroa Real"),
-        PetAccessory.GoldenHalo => T("Golden Halo", "Auréola Dourada"),
-        PetAccessory.WizardHat => T("n0way Wizard Hat", "Chapéu Mago n0way"),
-        _ => acc.ToString(),
-    };
+        var info = CosmeticCatalog.GetHat(acc);
+        return IsPt ? info.NamePt : info.NameEn;
+    }
+
+    public static string OutfitName(PetOutfit outfit)
+    {
+        var info = CosmeticCatalog.GetOutfit(outfit);
+        return IsPt ? info.NamePt : info.NameEn;
+    }
 }

@@ -21,10 +21,14 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] public static IObjectTable ObjectTable { get; private set; } = null!;
     [PluginService] public static ICondition Condition { get; private set; } = null!;
     [PluginService] public static IFramework Framework { get; private set; } = null!;
+    [PluginService] public static IDataManager DataManager { get; private set; } = null!;
+    [PluginService] public static IDutyState DutyState { get; private set; } = null!;
+    [PluginService] public static IChatGui ChatGui { get; private set; } = null!;
     [PluginService] public static IPluginLog Log { get; private set; } = null!;
 
     public static Configuration Config { get; private set; } = null!;
     public static PetSimulationService Sim { get; private set; } = null!;
+    public static TutorialOverlay Tutorial { get; private set; } = null!;
 
     private readonly WindowSystem windowSystem = new("PetFrenzy");
     private readonly PetHudWindow hudWindow;
@@ -33,7 +37,9 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin()
     {
         Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        Config.Pet = PetSaveStorage.LoadOrMigrate(Config);
         Sim = new PetSimulationService();
+        Tutorial = new TutorialOverlay();
 
         dashboardWindow = new DashboardWindow();
         hudWindow = new PetHudWindow(ToggleDashboard);
@@ -79,7 +85,9 @@ public sealed class Plugin : IDalamudPlugin
             && ClientState.IsLoggedIn
             && (!Config.HideHudInCutscene || (!Condition[ConditionFlag.OccupiedInCutSceneEvent] && !Condition[ConditionFlag.WatchingCutscene]));
 
+        Tutorial.BeginFrame();
         windowSystem.Draw();
+        Tutorial.Draw(dashboardWindow.IsOpen);
     }
 
     public void Dispose()
