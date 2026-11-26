@@ -9,6 +9,7 @@
     "Description": "Animated Eorzea Tamagotchi companion for FFXIV! Hatch a Carbuncle, Fat Cat, Moogle, or Namazu, level up to Lv.100 across ALL FFXIV content (Roulettes, Dungeons, Trials, Raids, PvP, FATEs, Bozja, Eureka, Occult Crescent, Cosmic Exploration, Crafting & Gathering), equip all 43 Job weapons & tools, and customize Hats, Outfits, Wings, Weapon Auras, and RGB Colors in the Wardrobe & Shop. Testing channel adds Live Multiplayer (see nearby & party players' pets!).",
     "ApplicableVersion": "any",
     "DalamudApiLevel": 15,
+    "TestingDalamudApiLevel": 15,
     "RepoUrl": "https://github.com/n0way02/PetFrenzy",
     "DownloadLinkInstall": "https://n0wayplugins.discloud.app/download/PetFrenzy",
     "DownloadLinkTesting": "https://n0wayplugins.discloud.app/download/PetFrenzy?channel=testing",
