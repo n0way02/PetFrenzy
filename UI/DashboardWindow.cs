@@ -1105,6 +1105,97 @@ public sealed class DashboardWindow : Window
         var interCardMax = new Vector2(interCardMin.X + ImGui.GetContentRegionAvail().X, ImGui.GetCursorScreenPos().Y - 10f);
         Plugin.Tutorial.RegisterTargetRect("settings_inter_card", interCardMin, interCardMax);
 
+        using (UiCard.Begin(L.T("Multiplayer — Nearby & Party Pets (Beta)", "Multiplayer — Pets na Área & Party (Beta)")))
+        {
+            var mp = Plugin.Multiplayer;
+            var statusCol = !cfg.MultiplayerEnabled ? Theme.TextMuted : (mp.IsConnected ? new Vector4(0.29f, 0.87f, 0.50f, 1f) : Theme.YellowMain);
+            var statusTxt = !cfg.MultiplayerEnabled
+                ? L.T("● Offline (Multiplayer disabled)", "● Desligado (Multiplayer desativado)")
+                : mp.IsConnected
+                    ? L.T($"● Connected  •  {mp.OnlineTotalCount} online  •  {mp.ZonePeerCount} in area  •  {mp.PartyPeerCount} in party",
+                          $"● Conectado  •  {mp.OnlineTotalCount} online  •  {mp.ZonePeerCount} na área  •  {mp.PartyPeerCount} na party")
+                    : L.T($"● Connecting to sync server... {(string.IsNullOrEmpty(mp.LastError) ? "" : $"({mp.LastError})")}",
+                          $"● Conectando ao servidor... {(string.IsNullOrEmpty(mp.LastError) ? "" : $"({mp.LastError})")}");
+            UiControls.InsetNote(statusTxt, statusCol);
+
+            var mpEnabled = cfg.MultiplayerEnabled;
+            if (UiControls.SettingToggleRow("mp_enabled",
+                L.T("Enable PetFrenzy Multiplayer", "Ativar Multiplayer do PetFrenzy"), ref mpEnabled,
+                L.T("See other players' animated pets live in your zone and party.", "Veja os pets animados de outros jogadores ao vivo na sua área e party.")))
+            { cfg.MultiplayerEnabled = mpEnabled; cfg.Save(); }
+
+            if (cfg.MultiplayerEnabled)
+            {
+                var shareOwn = cfg.MultiplayerShareOwnPet;
+                if (UiControls.SettingToggleRow("mp_share",
+                    L.T("Share my pet with nearby & party players", "Mostrar meu pet para jogadores próximos e da party"), ref shareOwn))
+                { cfg.MultiplayerShareOwnPet = shareOwn; cfg.Save(); }
+
+                var showWorld = cfg.MultiplayerShowWorldPets;
+                if (UiControls.SettingToggleRow("mp_world",
+                    L.T("Show nearby players' pets above their names", "Mostrar pets de jogadores da área acima do nome"), ref showWorld,
+                    L.T("Displays a mini live pet floating above other PetFrenzy users in your zone.", "Exibe um mini pet ao vivo flutuando acima do nome de outros usuários na mesma região.")))
+                { cfg.MultiplayerShowWorldPets = showWorld; cfg.Save(); }
+
+                if (cfg.MultiplayerShowWorldPets)
+                {
+                    var wScale = cfg.MultiplayerWorldPetScale;
+                    if (UiControls.SettingSliderRow("mp_wscale",
+                        L.T("Above-name pet size", "Tamanho do pet acima do nome"), ref wScale, 0.30f, 0.90f, "%.2fx"))
+                    { cfg.MultiplayerWorldPetScale = wScale; cfg.Save(); }
+
+                    var wHeight = cfg.MultiplayerWorldPetHeightOffset;
+                    if (UiControls.SettingSliderRow("mp_wheight",
+                        L.T("Height above player head", "Altura acima da cabeça"), ref wHeight, 0.10f, 1.50f, "+%.2fm"))
+                    { cfg.MultiplayerWorldPetHeightOffset = wHeight; cfg.Save(); }
+
+                    var wDist = cfg.MultiplayerWorldMaxDistance;
+                    if (UiControls.SettingSliderRow("mp_wdist",
+                        L.T("Max visible distance", "Distância máxima visível"), ref wDist, 10f, 75f, "%.0f yalms"))
+                    { cfg.MultiplayerWorldMaxDistance = wDist; cfg.Save(); }
+
+                    var wLabels = cfg.MultiplayerShowWorldPetLabels;
+                    if (UiControls.SettingToggleRow("mp_wlabels",
+                        L.T("Show pet name & level under above-name pets", "Mostrar nome e nível abaixo dos pets na área"), ref wLabels))
+                    { cfg.MultiplayerShowWorldPetLabels = wLabels; cfg.Save(); }
+                }
+
+                var showParty = cfg.MultiplayerShowPartyPets;
+                if (UiControls.SettingToggleRow("mp_party",
+                    L.T("Show Party members' pets as draggable HUDs", "Mostrar pets da Party livres na tela (arrastáveis)"), ref showParty,
+                    L.T("Each party friend's pet appears as its own movable HUD you can drag anywhere!", "O pet de cada amigo na party aparece na sua tela e você pode arrastar para onde quiser!")))
+                { cfg.MultiplayerShowPartyPets = showParty; cfg.Save(); }
+
+                if (cfg.MultiplayerShowPartyPets)
+                {
+                    var pScale = cfg.MultiplayerPartyPetScale;
+                    if (UiControls.SettingSliderRow("mp_pscale",
+                        L.T("Party pets size", "Tamanho dos pets da Party"), ref pScale, 0.50f, 1.50f, "%.2fx"))
+                    { cfg.MultiplayerPartyPetScale = pScale; cfg.Save(); }
+
+                    var pLock = cfg.MultiplayerLockPartyPets;
+                    if (UiControls.SettingToggleRow("mp_plock",
+                        L.T("Lock Party pet positions", "Travar posição dos pets da Party"), ref pLock))
+                    { cfg.MultiplayerLockPartyPets = pLock; cfg.Save(); }
+
+                    var pTrans = cfg.MultiplayerTransparentPartyPets;
+                    if (UiControls.SettingToggleRow("mp_ptrans",
+                        L.T("Transparent Party pet background", "Fundo transparente nos pets da Party"), ref pTrans))
+                    { cfg.MultiplayerTransparentPartyPets = pTrans; cfg.Save(); }
+
+                    var pNames = cfg.MultiplayerShowPartyPetNames;
+                    if (UiControls.SettingToggleRow("mp_pnames",
+                        L.T("Show owner & pet name badge", "Mostrar nome do dono e do pet"), ref pNames))
+                    { cfg.MultiplayerShowPartyPetNames = pNames; cfg.Save(); }
+
+                    var hideDup = cfg.MultiplayerHideWorldPetForParty;
+                    if (UiControls.SettingToggleRow("mp_hidedup",
+                        L.T("Hide above-name pet for Party members", "Ocultar acima do nome para quem já está no HUD da Party"), ref hideDup))
+                    { cfg.MultiplayerHideWorldPetForParty = hideDup; cfg.Save(); }
+                }
+            }
+        }
+
         using (UiCard.Begin(L.T("Chat Commands", "Comandos de Chat")))
         {
             UiControls.InsetNote(

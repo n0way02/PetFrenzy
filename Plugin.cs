@@ -23,29 +23,43 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] public static IFramework Framework { get; private set; } = null!;
     [PluginService] public static IDataManager DataManager { get; private set; } = null!;
     [PluginService] public static IDutyState DutyState { get; private set; } = null!;
+    [PluginService] public static IGameGui GameGui { get; private set; } = null!;
+    [PluginService] public static IPartyList PartyList { get; private set; } = null!;
     [PluginService] public static IChatGui ChatGui { get; private set; } = null!;
     [PluginService] public static IPluginLog Log { get; private set; } = null!;
 
     public static Configuration Config { get; private set; } = null!;
     public static PetSimulationService Sim { get; private set; } = null!;
+    public static PetMultiplayerService Multiplayer { get; private set; } = null!;
     public static TutorialOverlay Tutorial { get; private set; } = null!;
 
     private readonly WindowSystem windowSystem = new("PetFrenzy");
     private readonly PetHudWindow hudWindow;
     private readonly DashboardWindow dashboardWindow;
+    private readonly MultiplayerWorldOverlay worldOverlay;
+    private readonly PartyPetHudWindow[] partyHudWindows;
 
     public Plugin()
     {
         Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Config.Pet = PetSaveStorage.LoadOrMigrate(Config);
         Sim = new PetSimulationService();
+        Multiplayer = new PetMultiplayerService();
         Tutorial = new TutorialOverlay();
+        worldOverlay = new MultiplayerWorldOverlay();
 
         dashboardWindow = new DashboardWindow();
         hudWindow = new PetHudWindow(ToggleDashboard);
 
         windowSystem.AddWindow(hudWindow);
         windowSystem.AddWindow(dashboardWindow);
+
+        partyHudWindows = new PartyPetHudWindow[PartyPetHudWindow.MaxPartySlots];
+        for (var i = 0; i < partyHudWindows.Length; i++)
+        {
+            partyHudWindows[i] = new PartyPetHudWindow(i);
+            windowSystem.AddWindow(partyHudWindows[i]);
+        }
 
         CommandManager.AddHandler(CommandPrimary, new CommandInfo(OnCommand)
         {
@@ -81,9 +95,26 @@ public sealed class Plugin : IDalamudPlugin
 
     private void DrawUI()
     {
-        hudWindow.IsOpen = Config.ShowHud
+        var hideForCutscene = Config.HideHudInCutscene
+            && (Condition[ConditionFlag.OccupiedInCutSceneEvent] || Condition[ConditionFlag.WatchingCutscene]);
+
+        hudWindow.IsOpen = Config.ShowHud && ClientState.IsLoggedIn && !hideForCutscene;
+
+        // Bind party pet HUD slots
+        var allowPartyHud = Config.MultiplayerEnabled
+            && Config.MultiplayerShowPartyPets
             && ClientState.IsLoggedIn
-            && (!Config.HideHudInCutscene || (!Condition[ConditionFlag.OccupiedInCutSceneEvent] && !Condition[ConditionFlag.WatchingCutscene]));
+            && !hideForCutscene;
+
+        var partyPeers = allowPartyHud ? Multiplayer.GetPartyPeersSnapshot() : System.Array.Empty<RemotePetPeer>();
+        for (var i = 0; i < partyHudWindows.Length; i++)
+        {
+            var peer = i < partyPeers.Count ? partyPeers[i] : null;
+            partyHudWindows[i].UpdateBinding(peer, allowPartyHud);
+        }
+
+        // Draw other zone players' pets above their in-game nameplates
+        worldOverlay.Draw();
 
         Tutorial.BeginFrame();
         windowSystem.Draw();
@@ -100,6 +131,7 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager.RemoveHandler(CommandAlias);
 
         windowSystem.RemoveAllWindows();
+        Multiplayer.Dispose();
         Sim.Dispose();
         Config.Save();
     }

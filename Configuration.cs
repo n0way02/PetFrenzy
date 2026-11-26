@@ -9,7 +9,7 @@ namespace PetFrenzy;
 [Serializable]
 public sealed class Configuration : IPluginConfiguration
 {
-    public int Version { get; set; } = 2;
+    public int Version { get; set; } = 3;
 
     /// <summary>Default English ("en"), toggleable to Portuguese ("pt").</summary>
     public string Language { get; set; } = "en";
@@ -26,6 +26,21 @@ public sealed class Configuration : IPluginConfiguration
     public bool ShowJobWeapon { get; set; } = true;
     public bool HideHudInCutscene { get; set; } = true;
     public float HudScale { get; set; } = 1.0f;
+
+    // ── Multiplayer Settings (Testing / Beta) ──
+    public bool MultiplayerEnabled { get; set; } = true;
+    public bool MultiplayerShareOwnPet { get; set; } = true;
+    public bool MultiplayerShowWorldPets { get; set; } = true;
+    public float MultiplayerWorldPetScale { get; set; } = 0.48f;
+    public float MultiplayerWorldPetHeightOffset { get; set; } = 0.58f;
+    public float MultiplayerWorldMaxDistance { get; set; } = 35f;
+    public bool MultiplayerShowWorldPetLabels { get; set; } = false;
+    public bool MultiplayerShowPartyPets { get; set; } = true;
+    public float MultiplayerPartyPetScale { get; set; } = 0.85f;
+    public bool MultiplayerLockPartyPets { get; set; } = false;
+    public bool MultiplayerTransparentPartyPets { get; set; } = true;
+    public bool MultiplayerShowPartyPetNames { get; set; } = true;
+    public bool MultiplayerHideWorldPetForParty { get; set; } = true;
 
     /// <summary>
     /// One-time migration field for older plain-text saves; automatically moved to encrypted pet.sav and cleared.

@@ -49,9 +49,24 @@ public static class PetCanvasRenderer
         if (hovered) ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
         var min = ImGui.GetItemRectMin();
+        DrawPetInDrawList(ImGui.GetWindowDrawList(), min, pet, mood, timeSec, wobblePulse, sizePx, weaponStyle, isWeaponDrawn, hovered);
+        return clicked;
+    }
+
+    public static void DrawPetInDrawList(
+        ImDrawListPtr dl,
+        Vector2 min,
+        PetStateData pet,
+        PetMood mood,
+        float timeSec,
+        float wobblePulse,
+        float sizePx,
+        JobWeaponStyle weaponStyle = JobWeaponStyle.None,
+        bool isWeaponDrawn = false,
+        bool hovered = false)
+    {
         var center = min + new Vector2(sizePx * 0.5f, sizePx * 0.56f);
         var s = sizePx / 120f;
-        var dl = ImGui.GetWindowDrawList();
 
         // Ground shadow
         var shadowW = 30f * s;
@@ -74,7 +89,7 @@ public static class PetCanvasRenderer
         if (!pet.IsHatched || mood == PetMood.Hatching)
         {
             DrawEgg(dl, center, s, pet.Species, pet.EggProgress, mood == PetMood.Hatching, timeSec, wobblePulse);
-            return clicked;
+            return;
         }
 
         // Compute motion offset from mood
@@ -188,8 +203,6 @@ public static class PetCanvasRenderer
 
         // Draw mood particles (hearts, Zzz, confetti, tears, sweat)
         DrawMoodParticles(dl, petCenter, s, mood, timeSec);
-
-        return clicked;
     }
 
     private static void DrawEgg(ImDrawListPtr dl, Vector2 center, float s, PetSpecies sp, float progress, bool hatching, float t, float wobblePulse)
