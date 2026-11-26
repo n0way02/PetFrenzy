@@ -383,7 +383,7 @@ public sealed class DashboardWindow : Window
             ? (L.T("Rested — 100% XP Rate", "Descansado — 100% XP"), Theme.GreenAccent)
             : mult >= 0.30f
                 ? (L.T("Tired — 35% XP Rate (Soft Cap)", "Cansado — 35% XP (Limite Diário)"), Theme.OrangeAccent)
-                : (L.T("Exhausted — 10% XP Rate (Resets 00:00 UTC)", "Exausto — 10% XP (Reseta 00:00 UTC)"), Theme.RedDanger);
+                : (L.T("Exhausted — 10% XP Rate (Resets 08:00 UTC / 05:00 BRT)", "Exausto — 10% XP (Reseta 05:00 BRT)"), Theme.RedDanger);
 
         UiControls.TextWrappedColored(paceCol, $"{L.T("Daily XP Pace", "Ritmo Diário de XP")}  •  {paceLabel}");
         var dailyFrac = Math.Clamp((float)pet.DailyXpEarned / PetStateData.DailyFullXpCap, 0f, 1f);
@@ -846,8 +846,8 @@ public sealed class DashboardWindow : Window
         ImGui.BeginChild("##RewardTablePane", new Vector2(leftW, avail.Y), true);
         ImGui.TextColored(Theme.YellowMain, L.T("All FFXIV Content Rewards", "Recompensas de Todo Conteúdo FFXIV"));
         UiControls.TextWrappedColored(Theme.TextMuted, L.T(
-            "Full XP up to 2,500/day -> 35% (4,500) -> 10%  •  Duty consolation >= 2 min.",
-            "XP 100% até 2.500/dia -> 35% (4.500) -> 10%  •  Consolação >= 2 min."));
+            "Full XP up to 5,000/day -> 35% (9,000) -> 10% (resets 08:00 UTC / 05:00 BRT)  •  Duty consolation >= 2 min.",
+            "XP 100% até 5.000/dia -> 35% (9.000) -> 10% (reseta 05:00 BRT)  •  Consolação >= 2 min."));
         ImGui.Spacing();
 
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingStretchProp;

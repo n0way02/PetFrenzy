@@ -97,8 +97,8 @@ public static class EnergyPotionCatalog
 public sealed class PetStateData
 {
     public const int MaxLevel = 100;
-    public const int DailyFullXpCap = 2500;
-    public const int DailyTiredXpCap = 4500;
+    public const int DailyFullXpCap = 5000;
+    public const int DailyTiredXpCap = 9000;
 
     public PetSpecies Species { get; set; } = PetSpecies.Carbuncle;
     public string Name { get; set; } = "Carby";
@@ -187,7 +187,8 @@ public sealed class PetStateData
 
     public void RefreshDailyXpWindow()
     {
-        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        // Resets daily at 08:00 UTC (05:00 BRT / Brasília time)
+        var today = DateTime.UtcNow.AddHours(-8).ToString("yyyy-MM-dd");
         if (!string.Equals(DailyXpUtcDate, today, StringComparison.Ordinal))
         {
             DailyXpUtcDate = today;
