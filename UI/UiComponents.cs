@@ -26,8 +26,9 @@ public sealed class UiCard : IDisposable
     {
         if (!string.IsNullOrEmpty(sectionTitle))
         {
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 2f);
             ImGui.TextColored(Theme.YellowMain, sectionTitle.ToUpperInvariant());
-            ImGui.Dummy(new Vector2(0, 3f));
+            ImGui.Dummy(new Vector2(0, 4f));
         }
 
         return new UiCard();
@@ -37,7 +38,8 @@ public sealed class UiCard : IDisposable
     {
         var scale = ImGuiHelpers.GlobalScale;
         cardOrigin = ImGui.GetCursorScreenPos();
-        cardWidth = MathF.Max(120f, ImGui.GetContentRegionAvail().X);
+        // Leave 4px breathing room on the right so the card border never hugs the scrollbar/edge
+        cardWidth = MathF.Max(120f, ImGui.GetContentRegionAvail().X - 4f * scale);
         ContentLeftEdge = cardOrigin.X + PaddingX * scale;
         ContentRightEdge = cardOrigin.X + cardWidth - PaddingX * scale;
         RowDrawnInCard = false;
@@ -58,9 +60,9 @@ public sealed class UiCard : IDisposable
 
         var dl = ImGui.GetWindowDrawList();
         dl.ChannelsSetCurrent(0);
-        var rounding = 9f * scale;
+        var rounding = 10f * scale;
         dl.AddRectFilled(cardOrigin, cardEnd, Theme.ColU32(Theme.BgPanel), rounding);
-        dl.AddRect(cardOrigin, cardEnd, Theme.ColU32(Theme.BorderSoft), rounding, ImDrawFlags.None, 1f);
+        dl.AddRect(cardOrigin, cardEnd, Theme.Rgba(0.62f, 0.42f, 0.96f, 0.28f), rounding, ImDrawFlags.None, 1f);
         dl.ChannelsMerge();
 
         ImGui.SetCursorScreenPos(new Vector2(cardOrigin.X, cardEnd.Y));

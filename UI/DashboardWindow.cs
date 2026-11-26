@@ -161,7 +161,7 @@ public sealed class DashboardWindow : Window
 
         ImGui.TextColored(Theme.YellowMain, "PETFRENZY");
         ImGui.SameLine();
-        ImGui.TextColored(Theme.TextMuted, $"v1.0.0.0  •  {pet.Name} (Lv.{pet.Level}/{PetStateData.MaxLevel})  •");
+        ImGui.TextColored(Theme.TextMuted, $"v1.0.0.1  •  {pet.Name} (Lv.{pet.Level}/{PetStateData.MaxLevel})  •");
         ImGui.SameLine();
         ImGui.TextColored(Theme.YellowMain, $"{pet.Coins:N0} {L.T("Coins", "Moedas")}");
 
@@ -968,7 +968,10 @@ public sealed class DashboardWindow : Window
 
     private void DrawNurseryTab()
     {
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, Vector4.Zero);
         ImGui.BeginChild("##NurseryScroll", ImGui.GetContentRegionAvail(), false);
+        ImGui.PopStyleColor();
+        ImGui.Dummy(new Vector2(0, 4f));
         ImGui.TextColored(Theme.YellowMain, L.T("Choose & Hatch a New Companion Egg!", "Escolha e Choque um Novo Ovo!"));
         ImGui.TextWrapped(L.T(
             "Pick any companion below. Your new friend starts as an animated Egg that warms up as you play (or tap the egg to hatch it faster!).",
@@ -1035,7 +1038,10 @@ public sealed class DashboardWindow : Window
     private void DrawSettingsTab()
     {
         var cfg = Plugin.Config;
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, Vector4.Zero);
         ImGui.BeginChild("##SettingsScroll", ImGui.GetContentRegionAvail(), false);
+        ImGui.PopStyleColor();
+        ImGui.Dummy(new Vector2(0, 4f));
 
         var hudCardMin = ImGui.GetCursorScreenPos();
         using (UiCard.Begin(L.T("Floating Pet HUD", "HUD Flutuante do Pet")))
@@ -1113,22 +1119,38 @@ public sealed class DashboardWindow : Window
     private void DrawAboutTab()
     {
         var avail = ImGui.GetContentRegionAvail();
-        var leftW = Math.Clamp(avail.X * 0.30f, 200f, 255f);
-        var canvasSz = MathF.Min(196f, leftW - 24f);
+        var leftW = Math.Clamp(avail.X * 0.30f, 210f, 260f);
+        var canvasSz = MathF.Min(190f, leftW - 32f);
         var sim = Plugin.Sim;
         if (aboutKittyPettedSec > 0f)
             aboutKittyPettedSec = MathF.Max(0f, aboutKittyPettedSec - ImGui.GetIO().DeltaTime);
 
-        // Left: Special Mascot Tribute Card featuring the creator's fluffy kitty!
-        ImGui.BeginChild("##AboutMascotCard", new Vector2(leftW, avail.Y), true);
-        UiControls.TextWrappedColored(Theme.YellowMain, L.T("The Muse of PetFrenzy ♥", "A Musa do PetFrenzy ♥"));
-        UiControls.TextWrappedColored(Theme.TextMuted, L.T("Creator's real-life fluffy kitty!", "A gatinha real do criador!"));
-        ImGui.Spacing();
+        ImGui.Dummy(new Vector2(0, 4f));
+        var contentH = MathF.Max(120f, avail.Y - 6f);
+
+        // Left: Special Mascot Tribute Card featuring Milly!
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14f, 14f));
+        ImGui.BeginChild("##AboutMascotCard", new Vector2(leftW, contentH), true);
+
+        var cardInnerW = ImGui.GetContentRegionAvail().X;
+        var titleStr = L.T("The Muse of PetFrenzy ♥", "A Musa do PetFrenzy ♥");
+        var subStr = L.T("Creator's real-life fluffy kitty!", "A gatinha real do criador!");
+        var tSize = ImGui.CalcTextSize(titleStr);
+        var sSize = ImGui.CalcTextSize(subStr);
+
+        if (tSize.X < cardInnerW) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (cardInnerW - tSize.X) * 0.5f);
+        ImGui.TextColored(Theme.YellowMain, titleStr);
+        if (sSize.X < cardInnerW) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (cardInnerW - sSize.X) * 0.5f);
+        ImGui.TextColored(Theme.TextMuted, subStr);
+
+        ImGui.Dummy(new Vector2(0, 8f));
+        var canvasPadX = MathF.Max(0f, (cardInnerW - canvasSz) * 0.5f);
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + canvasPadX);
 
         var mascot = new PetStateData
         {
             Species = PetSpecies.FluffyKitty,
-            Name = "Fluffy",
+            Name = "Milly",
             IsHatched = true,
             Level = 100,
         };
@@ -1138,53 +1160,63 @@ public sealed class DashboardWindow : Window
             aboutKittyPettedSec = 3.2f;
         }
 
-        ImGui.Spacing();
-        if (aboutKittyPettedSec > 0f)
-            UiControls.TextWrappedColored(Theme.PinkAccent, L.T("\"Purrrrr~ ♥ Thank you for playing!\"", "\"Ronron~ ♥ Obrigada por jogar!\""));
-        else
-            UiControls.TextWrappedColored(Theme.TextMuted, L.T("Click her for headpats! ♥", "Clique nela para fazer carinho! ♥"));
+        ImGui.Dummy(new Vector2(0, 6f));
+        var caption = aboutKittyPettedSec > 0f
+            ? L.T("\"Purrrrr~ ♥ Thank you for playing!\"", "\"Ronron~ ♥ Obrigada por jogar!\"")
+            : L.T("Click her for headpats! ♥", "Clique nela para fazer carinho! ♥");
+        var capSize = ImGui.CalcTextSize(caption);
+        if (capSize.X < cardInnerW) ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (cardInnerW - capSize.X) * 0.5f);
+        UiControls.TextWrappedColored(aboutKittyPettedSec > 0f ? Theme.PinkAccent : Theme.TextMuted, caption);
 
-        ImGui.Spacing();
+        ImGui.Dummy(new Vector2(0, 12f));
         ImGui.Separator();
-        ImGui.Spacing();
+        ImGui.Dummy(new Vector2(0, 10f));
+
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.YellowMain);
         ImGui.PushStyleColor(ImGuiCol.Text, Theme.BgDark);
-        if (ImGui.Button(L.T("★ Replay Tutorial", "★ Rever Tutorial"), new Vector2(-1, 30f)))
+        if (ImGui.Button(L.T("★  Replay Tutorial", "★  Rever Tutorial"), new Vector2(-1, 32f)))
         {
             Plugin.Tutorial.Start();
         }
         ImGui.PopStyleColor(2);
         ImGui.EndChild();
+        ImGui.PopStyleVar();
 
-        ImGui.SameLine(0, 12f);
+        ImGui.SameLine(0, 14f);
 
-        // Right: FateFrenzy-style scrollable grouped cards (NEVER clips at any width!)
-        ImGui.BeginChild("##AboutInfoScroll", new Vector2(avail.X - leftW - 12f, avail.Y), false);
+        // Right: Transparent scroll area so each FateFrenzy-style UiCard floats cleanly with contrast!
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, Vector4.Zero);
+        ImGui.BeginChild("##AboutInfoScroll", new Vector2(avail.X - leftW - 14f, contentH), false);
+        ImGui.PopStyleColor();
 
         using (UiCard.Begin(L.T("About PetFrenzy", "Sobre o PetFrenzy")))
         {
-            UiControls.TextWrappedColored(Theme.TextWhite, "PetFrenzy — Eorzea Tamagotchi  •  v1.0.0.0");
-            UiControls.TextWrappedColored(Theme.TextMuted, L.T("Created with love by n0way02", "Criado com carinho por n0way02"));
-            ImGui.Spacing();
+            ImGui.TextColored(Theme.TextWhite, "PetFrenzy — Eorzea Tamagotchi");
+            ImGui.SameLine();
+            ImGui.TextColored(Theme.YellowMain, "v1.0.0.1");
+            ImGui.TextColored(Theme.TextMuted, L.T("Created with love by n0way02", "Criado com carinho por n0way02"));
+            ImGui.Dummy(new Vector2(0, 6f));
+
             ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + UiCard.InnerWidth);
             ImGui.TextUnformatted(L.T(
-                "PetFrenzy brings a lively, animated Tamagotchi companion right onto your FFXIV screen! Hatch your pet, feed it daily, equip it with your current Job's weapon or crafting/gathering tool, and earn Pet Coins & XP from virtually every activity in Eorzea — from Roulettes, Dungeons, Trials, Raids and PvP to FATEs, Bozja, Eureka, Occult Crescent, Cosmic Exploration, Crafting and Gathering.",
-                "O PetFrenzy traz um mascote Tamagotchi animado direto para a sua tela do FFXIV! Choque seu ovo, alimente-o todo dia, veja ele empunhando a arma da sua Job ou ferramenta de craft/coleta e ganhe Moedas e XP em praticamente todo conteúdo de Eorzea — de Roletas, Dungeons, Trials, Raids e PvP até FATEs, Bozja, Eureka, Occult Crescent, Exploração Cósmica, Craft e Coleta."));
+                "PetFrenzy brings a lively, animated Tamagotchi companion right onto your FFXIV screen! Hatch your pet, feed it, equip it with your current Job's weapon or crafting/gathering tool, and earn Pet Coins & XP from virtually every activity in Eorzea — from Roulettes, Dungeons, Trials, Raids and PvP to FATEs, Bozja, Eureka, Occult Crescent, Cosmic Exploration, Crafting and Gathering.",
+                "O PetFrenzy traz um mascote Tamagotchi animado direto para a sua tela do FFXIV! Choque seu ovo, alimente-o, veja ele empunhando a arma da sua Job ou ferramenta de craft/coleta e ganhe Moedas e XP em praticamente todo conteúdo de Eorzea — de Roletas, Dungeons, Trials, Raids e PvP até FATEs, Bozja, Eureka, Occult Crescent, Exploração Cósmica, Craft e Coleta."));
             ImGui.PopTextWrapPos();
         }
 
         using (UiCard.Begin(L.T("Thank You! ♥", "Muito Obrigado! ♥")))
         {
-            UiControls.InsetNote(L.T(
+            ImGui.PushTextWrapPos(ImGui.GetCursorPosX() + UiCard.InnerWidth);
+            ImGui.TextColored(Theme.TextLight, L.T(
                 "Thank you so much for using PetFrenzy and taking your little companion along on your adventures across Eorzea! If you enjoy my plugins and want to support future updates and new ideas, feel free to check out my website or buy me a coffee on Ko-fi.",
-                "Muito obrigado por usar o PetFrenzy e levar seu mascote nas suas aventuras por Eorzea! Se você curte os meus plugins e quiser apoiar novas atualizações e projetos futuros, visite o meu site ou pague um café no Ko-fi."),
-                Theme.TextLight);
+                "Muito obrigado por usar o PetFrenzy e levar seu mascote nas suas aventuras por Eorzea! Se você curte os meus plugins e quiser apoiar novas atualizações e projetos futuros, visite o meu site ou pague um café no Ko-fi."));
+            ImGui.PopTextWrapPos();
         }
 
         using (UiCard.Begin(L.T("Official Links (Right-click to copy)", "Links Oficiais (Botão direito para copiar)")))
         {
             var innerW = UiCard.InnerWidth;
-            var stackBtns = innerW < 420f;
+            var stackBtns = innerW < 410f;
             var btnW = stackBtns ? innerW : (innerW - 16f) / 3f;
 
             DrawLinkButton(L.T("★  Website", "★  Site Oficial"), "https://n0wayplugins.discloud.app",
@@ -1196,7 +1228,7 @@ public sealed class DashboardWindow : Window
             if (!stackBtns) ImGui.SameLine(0, 8f);
 
             DrawLinkButton("◆  GitHub", "https://github.com/n0way02",
-                new Vector4(0.18f, 0.07f, 0.34f, 1.0f), Theme.PurpleMain, Theme.PurpleBright, btnW);
+                new Vector4(0.20f, 0.08f, 0.38f, 1.0f), Theme.PurpleMain, Theme.PurpleBright, btnW);
         }
 
         ImGui.EndChild();
@@ -1226,7 +1258,10 @@ public sealed class DashboardWindow : Window
         var pet = Plugin.Config.Pet;
         var sim = Plugin.Sim;
 
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, Vector4.Zero);
         ImGui.BeginChild("##CreatorDevScroll", ImGui.GetContentRegionAvail(), false);
+        ImGui.PopStyleColor();
+        ImGui.Dummy(new Vector2(0, 4f));
 
         using (UiCard.Begin("★ Creator Sandbox / Debug Tools (Harumi Aoi Only)"))
         {
