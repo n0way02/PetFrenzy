@@ -39,7 +39,7 @@ public sealed class PetMultiplayerService : IDisposable
 {
     private const string SyncEndpoint = "https://n0wayplugins.discloud.app/api/petfrenzy/sync";
     private const string LeaveEndpoint = "https://n0wayplugins.discloud.app/api/petfrenzy/leave";
-    private const long NormalSyncIntervalMs = 2500;
+    private const long NormalSyncIntervalMs = 4000;
     private const long FastSyncIntervalMs = 950;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
