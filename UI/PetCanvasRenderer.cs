@@ -180,6 +180,11 @@ public static class PetCanvasRenderer
                 DrawShepherdDog(dl, petCenter, ps, mood, timeSec, cBody, cAccent, cDetail);
                 dl.PopClipRect();
                 break;
+            case PetSpecies.Deviruchi:
+                dl.PushClipRectFullScreen();
+                DrawDeviruchi(dl, petCenter, ps, mood, timeSec, cBody, cAccent, cDetail, showTrident: weaponStyle == JobWeaponStyle.None || !isWeaponDrawn);
+                dl.PopClipRect();
+                break;
         }
 
         // Draw front-layer outfits (Scarf, Red Necktie, Tuxedo, Hero Clasp, Knight Armor, Archmage Robe) ON pet body!
@@ -225,6 +230,7 @@ public static class PetCanvasRenderer
             PetSpecies.FatCat => (Theme.Rgba(0.95f, 0.92f, 0.86f), Theme.Rgba(0.55f, 0.52f, 0.60f)),
             PetSpecies.Moogle => (Theme.Rgba(0.98f, 0.96f, 1.00f), Theme.Rgba(0.95f, 0.45f, 0.65f)),
             PetSpecies.FluffyKitty => (Theme.Rgba(0.88f, 0.81f, 0.72f), Theme.Rgba(0.16f, 0.13f, 0.15f)),
+            PetSpecies.Deviruchi   => (Theme.Rgba(0.46f, 0.32f, 0.52f), Theme.Rgba(0.18f, 0.09f, 0.24f)),
             _ => (Theme.Rgba(1.00f, 0.94f, 0.74f), Theme.Rgba(0.95f, 0.35f, 0.25f)),
         };
 
@@ -620,6 +626,188 @@ public static class PetCanvasRenderer
         dl.AddLine(fc + new Vector2(0, 6.0f * s), fc + new Vector2(4.5f * s, 8.6f * s), creamChest, 1.5f * s);
     }
 
+    /// <summary>
+    /// Draws a chubby, mischievous Ragnarok-inspired chibi Deviruchi:
+    /// pointed devil ears, flapping bat wings, spade-tipped devil tail, glowing yellow eyes,
+    /// rosy cheeks, cheeky grin, and an optional iconic little black trident!
+    /// </summary>
+    private static void DrawDeviruchi(ImDrawListPtr dl, Vector2 c, float s, PetMood mood, float t, uint bodyCol, uint wingCol, uint eyeCol, bool showTrident)
+    {
+        var outline = Theme.Rgba(0.08f, 0.03f, 0.12f);
+        var bodyV = ImGui.ColorConvertU32ToFloat4(bodyCol);
+        var highlightCol = Theme.Rgba(
+            MathF.Min(1f, bodyV.X + 0.14f),
+            MathF.Min(1f, bodyV.Y + 0.11f),
+            MathF.Min(1f, bodyV.Z + 0.14f),
+            0.55f);
+        var shadowCol = Theme.Rgba(bodyV.X * 0.76f, bodyV.Y * 0.74f, bodyV.Z * 0.80f, 1f);
+
+        var wingFlap = mood == PetMood.Sleeping ? 0f : MathF.Sin(t * 7.5f) * 5.2f * s;
+        var tailWag = mood == PetMood.Sleeping ? 0f : MathF.Sin(t * 4.8f) * 4.0f * s;
+
+        // 1) Devil tail with pointed spade tip (bottom-left behind body)
+        var tBase = c + new Vector2(-21f * s, 18f * s);
+        var tMid = c + new Vector2(-33f * s, 14f * s + tailWag * 0.4f);
+        var tTip = c + new Vector2(-36f * s, 2f * s + tailWag);
+        dl.AddLine(tBase, tMid, outline, 5.4f * s);
+        dl.AddLine(tMid, tTip, outline, 5.0f * s);
+        dl.AddLine(tBase, tMid, wingCol, 3.0f * s);
+        dl.AddLine(tMid, tTip, wingCol, 2.8f * s);
+        // Spade / arrow tip
+        var sp1 = tTip + new Vector2(-6.5f * s, 1.5f * s);
+        var sp2 = tTip + new Vector2(1.5f * s, -8.5f * s);
+        var sp3 = tTip + new Vector2(6.0f * s, 2.5f * s);
+        dl.AddTriangleFilled(sp1, sp2, sp3, wingCol);
+        dl.AddTriangle(sp1, sp2, sp3, outline, 1.8f * s);
+
+        // 2) Flapping scalloped bat wings on left & right sides
+        void DrawBatWing(float dir)
+        {
+            var root = c + new Vector2(dir * 22f * s, -7f * s);
+            var tip = c + new Vector2(dir * 44f * s, -16f * s + wingFlap);
+            var mid1 = c + new Vector2(dir * 37f * s, -2f * s + wingFlap * 0.65f);
+            var mid2 = c + new Vector2(dir * 29f * s, 4f * s + wingFlap * 0.35f);
+            var low = c + new Vector2(dir * 21f * s, 1f * s);
+
+            dl.AddTriangleFilled(root, tip, mid1, wingCol);
+            dl.AddTriangleFilled(root, mid1, mid2, wingCol);
+            dl.AddTriangleFilled(root, mid2, low, wingCol);
+
+            dl.AddLine(root, tip, outline, 2.2f * s);
+            dl.AddLine(tip, mid1, outline, 2.0f * s);
+            dl.AddLine(mid1, mid2, outline, 2.0f * s);
+            dl.AddLine(mid2, low, outline, 1.9f * s);
+        }
+        DrawBatWing(-1f);
+        DrawBatWing(1f);
+
+        // 3) Cute stubby legs at bottom
+        dl.AddEllipseFilled(c + new Vector2(-15f * s, 27f * s), new Vector2(7.5f * s, 6.2f * s), shadowCol);
+        dl.AddEllipse(c + new Vector2(-15f * s, 27f * s), new Vector2(7.5f * s, 6.2f * s), outline, 0f, 16, 2.0f * s);
+        dl.AddEllipseFilled(c + new Vector2(15f * s, 27f * s), new Vector2(7.5f * s, 6.2f * s), shadowCol);
+        dl.AddEllipse(c + new Vector2(15f * s, 27f * s), new Vector2(7.5f * s, 6.2f * s), outline, 0f, 16, 2.0f * s);
+
+        // 4) Stubby little side paws
+        dl.AddEllipseFilled(c + new Vector2(-26f * s, 6f * s), new Vector2(6.5f * s, 4.6f * s), bodyCol);
+        dl.AddEllipse(c + new Vector2(-26f * s, 6f * s), new Vector2(6.5f * s, 4.6f * s), outline, 0f, 14, 1.9f * s);
+        dl.AddEllipseFilled(c + new Vector2(26f * s, 6f * s), new Vector2(6.5f * s, 4.6f * s), bodyCol);
+        dl.AddEllipse(c + new Vector2(26f * s, 6f * s), new Vector2(6.5f * s, 4.6f * s), outline, 0f, 14, 1.9f * s);
+
+        // 5) Iconic chubby rounded-rectangle Deviruchi blob body!
+        var bodyMin = c + new Vector2(-24.5f * s, -22f * s);
+        var bodyMax = c + new Vector2(24.5f * s, 28f * s);
+        dl.AddRectFilled(bodyMin, bodyMax, bodyCol, 15f * s);
+        // Subtle chubby lower shading + soft crown highlight
+        dl.AddEllipseFilled(c + new Vector2(0, -15f * s), new Vector2(13f * s, 4.8f * s), highlightCol);
+        dl.AddRect(bodyMin, bodyMax, outline, 15f * s, ImDrawFlags.None, 2.3f * s);
+
+        // 6) Two cute pointed devil/cat ears rising from top corners
+        var earTwitch = MathF.Sin(t * 3.5f) * 1.2f * s;
+        var lE1 = c + new Vector2(-22f * s, -15f * s);
+        var lE2 = c + new Vector2(-20f * s, -34f * s + earTwitch);
+        var lE3 = c + new Vector2(-8f * s, -21f * s);
+        dl.AddTriangleFilled(lE1, lE2, lE3, bodyCol);
+        dl.AddLine(lE1, lE2, outline, 2.2f * s);
+        dl.AddLine(lE2, lE3, outline, 2.2f * s);
+
+        var rE1 = c + new Vector2(22f * s, -15f * s);
+        var rE2 = c + new Vector2(20f * s, -34f * s - earTwitch);
+        var rE3 = c + new Vector2(8f * s, -21f * s);
+        dl.AddTriangleFilled(rE1, rE2, rE3, bodyCol);
+        dl.AddLine(rE1, rE2, outline, 2.2f * s);
+        dl.AddLine(rE2, rE3, outline, 2.2f * s);
+
+        // 7) Iconic little black Deviruchi Trident held in left paw (when no drawn job weapon overlaps it!)
+        if (showTrident)
+        {
+            var jab = mood == PetMood.Cheering ? MathF.Sin(t * 8f) * 2.5f * s : MathF.Sin(t * 2.8f) * 1.2f * s;
+            var staffBot = c + new Vector2(-22f * s, 16f * s + jab);
+            var staffTop = c + new Vector2(-34f * s, -20f * s + jab);
+            dl.AddLine(staffBot, staffTop, outline, 2.8f * s);
+
+            // Trident fork & 3 sharp prongs
+            var forkBase = c + new Vector2(-32.5f * s, -15f * s + jab);
+            var lProngBase = forkBase + new Vector2(-7.5f * s, -1.5f * s);
+            var rProngBase = forkBase + new Vector2(6.5f * s, -4.5f * s);
+            dl.AddLine(lProngBase, rProngBase, outline, 2.4f * s);
+
+            var lTip = lProngBase + new Vector2(-3.5f * s, -11.5f * s);
+            var mTip = staffTop + new Vector2(-3.5f * s, -10.5f * s);
+            var rTip = rProngBase + new Vector2(-2.0f * s, -11.5f * s);
+            dl.AddLine(lProngBase, lTip, outline, 2.2f * s);
+            dl.AddLine(staffTop, mTip, outline, 2.4f * s);
+            dl.AddLine(rProngBase, rTip, outline, 2.2f * s);
+
+            // Tiny arrowheads on each prong
+            dl.AddTriangleFilled(lTip, lTip + new Vector2(-2.2f * s, 4.0f * s), lTip + new Vector2(3.0f * s, 2.8f * s), outline);
+            dl.AddTriangleFilled(mTip, mTip + new Vector2(-2.6f * s, 4.2f * s), mTip + new Vector2(3.0f * s, 3.2f * s), outline);
+            dl.AddTriangleFilled(rTip, rTip + new Vector2(-2.5f * s, 3.8f * s), rTip + new Vector2(2.6f * s, 3.4f * s), outline);
+        }
+
+        // 8) Mischievous glowing eyes, rosy cheeks & cheeky grin!
+        var fc = c + new Vector2(0, -1f * s);
+        var pinkBlush = Theme.Rgba(0.96f, 0.48f, 0.68f, 0.50f);
+        dl.AddEllipseFilled(fc + new Vector2(-14.5f * s, 3.5f * s), new Vector2(4.2f * s, 2.6f * s), pinkBlush);
+        dl.AddEllipseFilled(fc + new Vector2(14.5f * s, 3.5f * s), new Vector2(4.2f * s, 2.6f * s), pinkBlush);
+
+        var isBlinking = (t % 4.4f) > 4.22f;
+        var lEye = fc + new Vector2(-9.5f * s, -2.5f * s);
+        var rEye = fc + new Vector2(9.5f * s, -2.5f * s);
+
+        if (mood == PetMood.Sleeping || isBlinking)
+        {
+            dl.AddLine(lEye + new Vector2(-4f * s, 0), lEye + new Vector2(4f * s, 0), eyeCol, 2.2f * s);
+            dl.AddLine(rEye + new Vector2(-4f * s, 0), rEye + new Vector2(4f * s, 0), eyeCol, 2.2f * s);
+        }
+        else if (mood is PetMood.Happy or PetMood.Petted or PetMood.Celebrating)
+        {
+            // Cute glowing "^ ^" happy devil eyes!
+            dl.AddLine(lEye + new Vector2(-4.2f * s, 2f * s), lEye + new Vector2(0, -3f * s), eyeCol, 2.4f * s);
+            dl.AddLine(lEye + new Vector2(0, -3f * s), lEye + new Vector2(4.2f * s, 2f * s), eyeCol, 2.4f * s);
+            dl.AddLine(rEye + new Vector2(-4.2f * s, 2f * s), rEye + new Vector2(0, -3f * s), eyeCol, 2.4f * s);
+            dl.AddLine(rEye + new Vector2(0, -3f * s), rEye + new Vector2(4.2f * s, 2f * s), eyeCol, 2.4f * s);
+        }
+        else if (mood == PetMood.Crying)
+        {
+            dl.AddLine(lEye + new Vector2(-3.5f * s, -3f * s), lEye + new Vector2(3.5f * s, 3f * s), eyeCol, 2.2f * s);
+            dl.AddLine(lEye + new Vector2(-3.5f * s, 3f * s), lEye + new Vector2(3.5f * s, -3f * s), eyeCol, 2.2f * s);
+            dl.AddLine(rEye + new Vector2(-3.5f * s, -3f * s), rEye + new Vector2(3.5f * s, 3f * s), eyeCol, 2.2f * s);
+            dl.AddLine(rEye + new Vector2(-3.5f * s, 3f * s), rEye + new Vector2(3.5f * s, -3f * s), eyeCol, 2.2f * s);
+        }
+        else
+        {
+            // Iconic glowing yellow vertical oval eyes!
+            dl.AddEllipseFilled(lEye, new Vector2(2.6f * s, 3.8f * s), eyeCol);
+            dl.AddEllipseFilled(rEye, new Vector2(2.6f * s, 3.8f * s), eyeCol);
+            if (mood == PetMood.Cheering)
+            {
+                // Fierce little battle eyebrows
+                dl.AddLine(lEye + new Vector2(-5f * s, -7f * s), lEye + new Vector2(4.5f * s, -3.5f * s), outline, 2.4f * s);
+                dl.AddLine(rEye + new Vector2(5f * s, -7f * s), rEye + new Vector2(-4.5f * s, -3.5f * s), outline, 2.4f * s);
+            }
+        }
+
+        // Cheeky glowing smile with cute little fang/drool!
+        if (mood is PetMood.Panic or PetMood.Crying)
+        {
+            dl.AddCircle(fc + new Vector2(0, 8f * s), 3.4f * s, eyeCol, 14, 1.8f * s);
+        }
+        else if (mood is PetMood.Hungry or PetMood.Grumpy)
+        {
+            dl.AddLine(fc + new Vector2(-6f * s, 7.5f * s), fc + new Vector2(6f * s, 7.5f * s), eyeCol, 2.2f * s);
+        }
+        else
+        {
+            // Classic wide cheeky Deviruchi grin + tiny cute fang on the right!
+            dl.AddLine(fc + new Vector2(-9f * s, 6.5f * s), fc + new Vector2(9f * s, 7.2f * s), eyeCol, 2.4f * s);
+            dl.AddTriangleFilled(
+                fc + new Vector2(4.5f * s, 7.0f * s),
+                fc + new Vector2(8.5f * s, 7.0f * s),
+                fc + new Vector2(6.5f * s, 11.8f * s),
+                eyeCol);
+        }
+    }
+
     private static void DrawCuteFace(ImDrawListPtr dl, Vector2 fc, float s, PetMood mood, float t, uint detailCol, bool skipMouth = false)
     {
         var dark = Theme.Rgba(0.10f, 0.02f, 0.18f);
@@ -832,6 +1020,7 @@ public static class PetCanvasRenderer
         PetSpecies.Moogle => (c + new Vector2(0, 4f * s), 27f * s, 25f * s),
         PetSpecies.FluffyKitty => (c + new Vector2(0, 5f * s), 30f * s, 25f * s),
         PetSpecies.ShepherdDog => (c + new Vector2(0, 5f * s), 31f * s, 25.5f * s),
+        PetSpecies.Deviruchi   => (c + new Vector2(0, 4f * s), 25.5f * s, 24.5f * s),
         _ => (c + new Vector2(0, 4f * s), 30f * s, 25f * s),
     };
 

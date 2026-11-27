@@ -78,15 +78,24 @@ public sealed class TutorialOverlay
             RequiredTabKey: "tab_nursery",
             TitleEn: "5. Egg Nursery (Adopt Anytime)",
             TitlePt: "5. Chocadeira (Adote Quando Quiser)",
-            BodyEn: "Want to switch companions? Pick Carbuncle, Fat Cat, Moogle, or Namazu here! You can keep your current Level and all unlocked cosmetics whenever you adopt a new egg.",
-            BodyPt: "Quer trocar de mascote? Escolha Carbuncle, Fat Cat, Moogle ou Namazu aqui! Você pode manter seu Nível atual e todos os cosméticos desbloqueados ao adotar um novo ovo.",
+            BodyEn: "Want to switch companions? Pick Carbuncle, Fat Cat, Moogle, Namazu, Fluffy Shepherd, or Deviruchi here! You can keep your current Level and all unlocked cosmetics whenever you adopt a new egg.",
+            BodyPt: "Quer trocar de mascote? Escolha Carbuncle, Fat Cat, Moogle, Namazu, Pastor Alemão ou Deviruchi aqui! Você pode manter seu Nível atual e todos os cosméticos desbloqueados ao adotar um novo ovo.",
             MillyMood: PetMood.Happy),
+
+        new(
+            TargetKey: "tab_social",
+            RequiredTabKey: "tab_social",
+            TitleEn: "6. Social, Gifts & Co-op Mini-Bosses!",
+            TitlePt: "6. Social, Presentes e Mini-Bosses Co-op!",
+            BodyEn: "Pet friends' companions, gift Snacks/Potions, and summon Level-Scaled Co-op Mini-Bosses (up to 8 players)!\n• Pets auto-attack while you trigger Burst, Special, + Heal & Shield (to block Boss Casts!), and a Shared FFXIV Limit Break!\n• Check 'Invite nearby players in zone' so players around you get a pet speech-bubble invite to join your battle!",
+            BodyPt: "Faça carinho nos pets dos amigos, mande Petiscos/Poções e invoque Mini-Bosses Co-op com Nível (até 8 jogadores)!\n• Os pets atacam sozinhos enquanto você usa Golpe, Especial, + Cura & Escudo (para bloquear Casts!) e o Limit Break compartilhado!\n• Marque 'Convidar jogadores da área' para enviar um convite no balão de fala do pet de quem estiver por perto!",
+            MillyMood: PetMood.Cheering),
 
         new(
             TargetKey: "settings_hud_card",
             RequiredTabKey: "tab_settings",
-            TitleEn: "6. Move, Remove Background, Lock & Resize!",
-            TitlePt: "6. Mover, Tirar Fundo, Travar e Redimensionar!",
+            TitleEn: "7. Move, Remove Background, Lock & Resize!",
+            TitlePt: "7. Mover, Tirar Fundo, Travar e Redimensionar!",
             BodyEn: "Try these switches right now inside the spotlight!\n• Drag your floating pet anywhere on your screen.\n• Turn ON 'Transparent / borderless' to remove the window box.\n• Turn ON 'Lock HUD position' once it's in the perfect spot.\n• Use 'HUD Scale' to make your pet bigger or smaller!",
             BodyPt: "Teste essas opções agora mesmo dentro do destaque!\n• Arraste o pet flutuante para qualquer lugar da tela.\n• Ative 'Fundo transparente / sem borda' para tirar a caixinha.\n• Ative 'Travar posição do HUD' quando deixar no lugar perfeito.\n• Use 'Tamanho do HUD' para aumentar ou diminuir o pet!",
             MillyMood: PetMood.Working),
@@ -94,8 +103,8 @@ public sealed class TutorialOverlay
         new(
             TargetKey: "settings_inter_card",
             RequiredTabKey: "tab_settings",
-            TitleEn: "7. Job Weapons, Bubbles & Quick Care",
-            TitlePt: "7. Armas da Job, Balões e Botões Rápidos",
+            TitleEn: "8. Job Weapons, Bubbles & Quick Care",
+            TitlePt: "8. Armas da Job, Balões e Botões Rápidos",
             BodyEn: "Here you can toggle quick care buttons under the floating pet, speech bubbles, and automatic Job weapons & crafting/gathering tools (your pet draws its weapon with you in combat!).",
             BodyPt: "Aqui você liga/desliga os botões rápidos abaixo do pet, os balões de fala e o equipamento automático de arma da sua Job / ferramentas de craft e coleta (ele saca a arma junto com você em combate!).",
             MillyMood: PetMood.Cheering),
@@ -103,8 +112,8 @@ public sealed class TutorialOverlay
         new(
             TargetKey: "settings_mp_card",
             RequiredTabKey: "tab_settings",
-            TitleEn: "8. Live Multiplayer — Area & Party Pets!",
-            TitlePt: "8. Multiplayer ao Vivo — Pets na Área e Party!",
+            TitleEn: "9. Live Multiplayer — Area & Party Pets!",
+            TitlePt: "9. Multiplayer ao Vivo — Pets na Área e Party!",
             BodyEn: "See other PetFrenzy players' companions live!\n• Nearby players in your zone show their animated pet right above their name.\n• Party & Cross-World Party friends get their own draggable HUD pets you can resize & arrange anywhere!\n• Toggle remote speech bubbles, height, distance & privacy anytime here.",
             BodyPt: "Veja os mascotes de outros jogadores do PetFrenzy ao vivo!\n• Jogadores na mesma região mostram o pet animado acima do nome.\n• Amigos em Party (inclusive Cross-World!) aparecem soltos na tela para você arrastar e redimensionar!\n• Ajuste altura, distância, privacidade e balões de fala aqui.",
             MillyMood: PetMood.Celebrating),
@@ -122,6 +131,7 @@ public sealed class TutorialOverlay
 
     private readonly Dictionary<string, (Vector2 Min, Vector2 Max)> targets = new(StringComparer.Ordinal);
     private string? pendingTabSwitch;
+    private string? pendingScrollTarget;
     private int bringToFrontFrames;
 
     public bool IsActive { get; private set; }
@@ -132,6 +142,7 @@ public sealed class TutorialOverlay
         IsActive = true;
         StepIndex = 0;
         pendingTabSwitch = Steps[0].RequiredTabKey;
+        pendingScrollTarget = Steps[0].TargetKey;
         bringToFrontFrames = 2;
     }
 
@@ -139,6 +150,7 @@ public sealed class TutorialOverlay
     {
         IsActive = false;
         pendingTabSwitch = null;
+        pendingScrollTarget = null;
         if (markCompleted && !Plugin.Config.TutorialCompleted)
         {
             Plugin.Config.TutorialCompleted = true;
@@ -151,6 +163,15 @@ public sealed class TutorialOverlay
         targets.Clear();
     }
 
+    public void ScrollHereIfTargeted(string key)
+    {
+        if (IsActive && string.Equals(pendingScrollTarget, key, StringComparison.Ordinal))
+        {
+            ImGui.SetScrollHereY(0.05f);
+            pendingScrollTarget = null;
+        }
+    }
+
     public void RegisterTarget(string key)
     {
         if (!IsActive) return;
@@ -160,7 +181,13 @@ public sealed class TutorialOverlay
     public void RegisterTargetRect(string key, Vector2 min, Vector2 max)
     {
         if (!IsActive) return;
-        targets[key] = (min, max);
+        // Clamp to the visible bounds of the current window/scroll container so the spotlight never bleeds outside!
+        var winMin = ImGui.GetWindowPos();
+        var winMax = winMin + ImGui.GetWindowSize();
+        var clampedMin = new Vector2(MathF.Max(winMin.X, min.X), MathF.Max(winMin.Y, min.Y));
+        var clampedMax = new Vector2(MathF.Min(winMax.X, max.X), MathF.Min(winMax.Y, max.Y));
+        if (clampedMax.X > clampedMin.X + 8f && clampedMax.Y > clampedMin.Y + 8f)
+            targets[key] = (clampedMin, clampedMax);
     }
 
     /// <summary>
@@ -356,6 +383,7 @@ public sealed class TutorialOverlay
     {
         StepIndex = Math.Clamp(newIndex, 0, Steps.Length - 1);
         pendingTabSwitch = Steps[StepIndex].RequiredTabKey;
+        pendingScrollTarget = Steps[StepIndex].TargetKey;
         bringToFrontFrames = 2;
     }
 

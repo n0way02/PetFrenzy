@@ -1536,4 +1536,83 @@ public sealed unsafe class PetSimulationService : IDisposable
         var idx = rng.Next(en.Length);
         return L.T(en[idx], pt[idx]);
     }
+
+    public bool TrySpendCoinsForGift(int costCoins, string targetName, string giftName)
+    {
+        var pet = Plugin.Config.Pet;
+        if (costCoins <= 0) return true;
+        if (pet.Coins < costCoins)
+        {
+            Say(L.T($"Need {costCoins} Coins! (Have {pet.Coins})", $"Preciso de {costCoins} Moedas! (Tem {pet.Coins})"), 3.0f);
+            return false;
+        }
+        pet.Coins -= costCoins;
+        pet.TotalCoinsSpent += costCoins;
+        LogEvent(L.T($"Sent {giftName} to {targetName} (-{costCoins} Coins)", $"Enviou {giftName} para {targetName} (-{costCoins} Moedas)"));
+        MarkDirty();
+        return true;
+    }
+
+    public void ReceiveSocialInteraction(string fromPlayer, string fromPet, string kind)
+    {
+        var pet = Plugin.Config.Pet;
+        var senderFirst = string.IsNullOrWhiteSpace(fromPlayer) ? "Friend" : fromPlayer.Split(' ')[0];
+
+        switch (kind)
+        {
+            case "snack":
+                pet.IsHibernating = false;
+                pet.ZeroHungerSeconds = 0f;
+                pet.Hunger = MathF.Min(100f, pet.Hunger + 35f);
+                pet.Happiness = MathF.Min(100f, pet.Happiness + 12f);
+                pet.SnacksEaten++;
+                AddXp(12);
+                TriggerReaction(PetMood.Celebrating, 4.5f, L.T($"♥ Snack from {senderFirst}!!", $"♥ Petisco de {senderFirst}!!"));
+                LogEvent(L.T($"{fromPlayer} ({fromPet}) gifted a Snack! (+35% Hunger, +12 XP)", $"{fromPlayer} ({fromPet}) mandou um Petisco! (+35% Fome, +12 XP)"));
+                break;
+            case "potion":
+                pet.Energy = MathF.Min(100f, pet.Energy + 35f);
+                pet.Happiness = MathF.Min(100f, pet.Happiness + 8f);
+                AddXp(10);
+                TriggerReaction(PetMood.Celebrating, 4.0f, L.T($"⚡ Potion from {senderFirst}!!", $"⚡ Poção de {senderFirst}!!"));
+                LogEvent(L.T($"{fromPlayer} ({fromPet}) gifted an Energy Potion! (+35% Energy, +10 XP)", $"{fromPlayer} ({fromPet}) mandou uma Poção de Energia! (+35% Energia, +10 XP)"));
+                break;
+            default:
+                pet.Happiness = MathF.Min(100f, pet.Happiness + 8f);
+                pet.PetsReceived++;
+                AddXp(5);
+                TriggerReaction(PetMood.Petted, 3.8f, L.T($"♥ {senderFirst} petted me!", $"♥ {senderFirst} fez carinho!"));
+                LogEvent(L.T($"{fromPlayer} petted {pet.Name}! (+8% Happiness, +5 XP)", $"{fromPlayer} fez carinho em {pet.Name}! (+8% Felicidade, +5 XP)"));
+                break;
+        }
+
+        WobblePulseSec = 0.8f;
+        MarkDirty();
+    }
+
+    public void TriggerBossAttackReaction(int dmg, bool isCrit)
+    {
+        var line = isCrit
+            ? L.T($"CRIT!! {dmg} DMG!!", $"CRÍTICO!! {dmg} DANO!!")
+            : L.T($"POW! {dmg} dmg!", $"TOME! {dmg} dano!");
+        TriggerReaction(PetMood.Cheering, 1.8f, line);
+        WobblePulseSec = 0.45f;
+    }
+
+    public void GrantPartyBossReward(string bossName, int coins, int xp)
+    {
+        var pet = Plugin.Config.Pet;
+        if (pet.IsHibernating) return;
+
+        pet.Coins += coins;
+        pet.TotalCoinsEarned += coins;
+        pet.Happiness = MathF.Min(100f, pet.Happiness + 15f);
+        pet.Energy = MathF.Max(0f, pet.Energy - 6f);
+        AddXp(xp);
+        TriggerReaction(PetMood.Celebrating, 5.5f,
+            L.T($"VICTORY! +{coins} Coins +{xp} XP!", $"VITÓRIA! +{coins} Moedas +{xp} XP!"));
+        LogEvent(L.T($"Party defeated Mini-Boss {bossName}! (+{coins} Coins, +{xp} XP)",
+            $"Party derrotou o Mini-Boss {bossName}! (+{coins} Moedas, +{xp} XP)"));
+        MarkDirty();
+    }
 }

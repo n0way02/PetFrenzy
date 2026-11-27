@@ -17,6 +17,9 @@ public sealed class Configuration : IPluginConfiguration
     /// <summary>Whether the first-time Milly interactive spotlight tutorial has been completed or skipped.</summary>
     public bool TutorialCompleted { get; set; } = false;
 
+    /// <summary>Last PetFrenzy version for which the user already viewed the "What's New" changelog popup.</summary>
+    public string LastSeenChangelogVersion { get; set; } = string.Empty;
+
     /// <summary>Floating HUD visibility and appearance (stored in PetFrenzy.json).</summary>
     public bool ShowHud { get; set; } = true;
     public bool TransparentHud { get; set; } = false;

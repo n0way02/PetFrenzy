@@ -188,6 +188,66 @@ public sealed class PetHudWindow : Window
                     if (ImGui.IsItemHovered()) ImGui.SetTooltip(L.T("Open Dashboard & Food Shop", "Abrir Painel & Loja de Comida"));
                 }
             }
+
+            // ── Interactive Pet Speech-Bubble Invite when a nearby player invites you to a Mini-Boss! ──
+            var invite = Plugin.Multiplayer.PendingBossInvite;
+            if (invite != null && (Plugin.Multiplayer.ActiveBoss == null || Plugin.Multiplayer.ActiveBoss.IsEnded))
+            {
+                ImGui.Dummy(new Vector2(0, 8f));
+                var cardW = MathF.Max(230f, canvasSize);
+                var fromFirst = invite.FromPlayerName.Split(' ')[0];
+                var msg = L.T(
+                    $"\"{fromFirst} ({invite.FromPetName}) invited us to fight Lv.{invite.BossLevel} {invite.BossName}!\"",
+                    $"\"{fromFirst} ({invite.FromPetName}) convidou a gente pra enfrentar Lv.{invite.BossLevel} {invite.BossName}!\"");
+
+                var padX = 10f;
+                var padY = 8f;
+                var wrapW = cardW - padX * 2f;
+                var textH = ImGui.CalcTextSize(msg, false, wrapW).Y;
+                var cardH = padY * 2f + textH + 8f + 26f;
+
+                var origin = ImGui.GetCursorScreenPos();
+                var dl = ImGui.GetWindowDrawList();
+
+                // Speech bubble pointer tail pointing UP to the pet!
+                var tailCenter = origin.X + MathF.Min(cardW * 0.5f, canvasSize * 0.5f);
+                dl.AddTriangleFilled(
+                    new Vector2(tailCenter - 7f, origin.Y + 2f),
+                    new Vector2(tailCenter + 7f, origin.Y + 2f),
+                    new Vector2(tailCenter, origin.Y - 7f),
+                    Theme.Rgba(0.14f, 0.03f, 0.29f, 0.96f));
+                dl.AddLine(new Vector2(tailCenter - 7f, origin.Y + 1f), new Vector2(tailCenter, origin.Y - 7f), Theme.ColU32(Theme.YellowMain), 1.5f);
+                dl.AddLine(new Vector2(tailCenter + 7f, origin.Y + 1f), new Vector2(tailCenter, origin.Y - 7f), Theme.ColU32(Theme.YellowMain), 1.5f);
+
+                ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.14f, 0.03f, 0.29f, 0.96f));
+                ImGui.PushStyleColor(ImGuiCol.Border, Theme.YellowMain);
+                ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 10f);
+                ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 1.5f);
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(padX, padY));
+
+                if (ImGui.BeginChild("##PetBossInviteBubble", new Vector2(cardW, cardH), true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+                {
+                    ImGui.PushTextWrapPos(padX + wrapW);
+                    ImGui.TextColored(Theme.YellowMain, msg);
+                    ImGui.PopTextWrapPos();
+
+                    ImGui.Dummy(new Vector2(0, 4f));
+                    var bW = (cardW - padX * 2f - 6f) * 0.5f;
+                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.15f, 0.62f, 0.40f, 1f));
+                    if (ImGui.Button(L.T("✓ Accept", "✓ Aceitar"), new Vector2(bW, 25f)))
+                        Plugin.Multiplayer.RespondToBossInvite(true);
+                    ImGui.PopStyleColor();
+
+                    ImGui.SameLine(0, 6f);
+                    ImGui.PushStyleColor(ImGuiCol.Button, Theme.BgSurface);
+                    if (ImGui.Button(L.T("× Decline", "× Recusar"), new Vector2(bW, 25f)))
+                        Plugin.Multiplayer.RespondToBossInvite(false);
+                    ImGui.PopStyleColor();
+                }
+                ImGui.EndChild();
+                ImGui.PopStyleVar(3);
+                ImGui.PopStyleColor(2);
+            }
         }
         finally
         {

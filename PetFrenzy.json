@@ -2,10 +2,10 @@
   "Author": "n0way02",
   "Name": "PetFrenzy",
   "InternalName": "PetFrenzy",
-  "AssemblyVersion": "1.1.0.9",
-  "Description": "Animated Eorzea Tamagotchi companion for FFXIV with Live Multiplayer! Hatch a Carbuncle, Fat Cat, Moogle, or Namazu, see nearby & party (including Cross-World!) players' pets live, level up to Lv.100 across ALL FFXIV content (including BLU & BST), equip all 43 Job weapons & tools, and customize Hats, Outfits, Wings, Weapon Auras, and RGB Colors.",
+  "AssemblyVersion": "1.1.1.0",
+  "Description": "Animated Eorzea Tamagotchi companion for FFXIV with Live Multiplayer & 8-Player Co-op Mini-Bosses! Hatch a Carbuncle, Fat Cat, Moogle, Namazu, Fluffy Shepherd, or Deviruchi, pet & gift friends' companions, invite nearby players to battle Level-Scaled Mini-Bosses with a shared Limit Break, level up to Lv.100 across ALL FFXIV content, equip all 43 Job weapons & tools, and customize Hats, Outfits, Wings, Weapon Auras, and RGB Colors.",
   "ApplicableVersion": "any",
-  "Punchline": "Animated Eorzea Tamagotchi pet with Live Multiplayer, Job weapons, Lv.100 progression & Wardrobe!",
+  "Punchline": "Animated Eorzea Tamagotchi with Live Multiplayer, 8-Player Co-op Mini-Bosses, Deviruchi, Job weapons & Wardrobe!",
   "RepoUrl": "https://github.com/n0way02/PetFrenzy",
   "IconUrl": "https://raw.githubusercontent.com/n0way02/PetFrenzy/main/images/icon.png",
   "Tags": [

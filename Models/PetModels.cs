@@ -12,6 +12,7 @@ public enum PetSpecies
     Namazu = 3,
     FluffyKitty = 4, // Creator-exclusive fluffy seal-point kitty
     ShepherdDog = 5, // Fluffy German Shepherd dog
+    Deviruchi = 6,   // Cute dark-plum chibi devil imp
 }
 
 public enum PetStage
@@ -238,6 +239,7 @@ public sealed class PetStateData
         PetSpecies.Moogle      => (new(0.98f, 0.97f, 1.00f, 1f), new(0.45f, 0.12f, 0.78f, 1f), new(1.00f, 0.90f, 0.00f, 1f)),
         PetSpecies.FluffyKitty => (new(0.85f, 0.78f, 0.68f, 1f), new(0.15f, 0.12f, 0.14f, 1f), new(0.54f, 0.84f, 0.99f, 1f)),
         PetSpecies.ShepherdDog => (new(0.76f, 0.54f, 0.31f, 1f), new(0.13f, 0.11f, 0.12f, 1f), new(0.88f, 0.62f, 0.22f, 1f)),
+        PetSpecies.Deviruchi   => (new(0.36f, 0.24f, 0.40f, 1f), new(0.22f, 0.13f, 0.27f, 1f), new(0.99f, 0.94f, 0.60f, 1f)),
         _                      => (new(0.98f, 0.89f, 0.62f, 1f), new(0.88f, 0.20f, 0.26f, 1f), new(1.00f, 0.45f, 0.62f, 1f)),
     };
 
@@ -249,6 +251,7 @@ public sealed class PetStateData
         PetSpecies.Namazu => "Wasshoi",
         PetSpecies.FluffyKitty => "Fluffy",
         PetSpecies.ShepherdDog => "Rex",
+        PetSpecies.Deviruchi => "Devi",
         _ => "Buddy",
     };
 }

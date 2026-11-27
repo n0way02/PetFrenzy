@@ -116,6 +116,21 @@ public sealed class DashboardWindow : Window
                     Plugin.Tutorial.RegisterTarget("tab_nursery");
                 }
 
+                var hasBoss = Plugin.Multiplayer.ActiveBoss is { IsEnded: false };
+                var socialLabel = hasBoss
+                    ? L.T("Social & Boss ●###TabSocial", "Social & Boss ●###TabSocial")
+                    : L.T("Social & Boss###TabSocial", "Social & Boss###TabSocial");
+                if (ImGui.BeginTabItem(socialLabel, Plugin.Tutorial.ConsumeTabFlag("tab_social")))
+                {
+                    Plugin.Tutorial.RegisterTarget("tab_social");
+                    DrawSocialAndBossTab();
+                    ImGui.EndTabItem();
+                }
+                else
+                {
+                    Plugin.Tutorial.RegisterTarget("tab_social");
+                }
+
                 if (ImGui.BeginTabItem(L.T("HUD & Settings", "HUD & Config"), Plugin.Tutorial.ConsumeTabFlag("tab_settings")))
                 {
                     Plugin.Tutorial.RegisterTarget("tab_settings");
@@ -161,7 +176,7 @@ public sealed class DashboardWindow : Window
 
         ImGui.TextColored(Theme.YellowMain, "PETFRENZY");
         ImGui.SameLine();
-        ImGui.TextColored(Theme.TextMuted, $"v1.0.0.3  •  {pet.Name} (Lv.{pet.Level}/{PetStateData.MaxLevel})  •");
+        ImGui.TextColored(Theme.TextMuted, $"v{Plugin.CurrentVersion}  •  {pet.Name} (Lv.{pet.Level}/{PetStateData.MaxLevel})  •");
         ImGui.SameLine();
         ImGui.TextColored(Theme.YellowMain, $"{pet.Coins:N0} {L.T("Coins", "Moedas")}");
 
@@ -985,34 +1000,67 @@ public sealed class DashboardWindow : Window
             .Where(sp => sp != PetSpecies.FluffyKitty || canAdoptKitty)
             .ToArray();
         var availW = ImGui.GetContentRegionAvail().X;
-        var cols = availW >= 740f ? species.Length : Math.Min(3, species.Length);
-        var cardW = (availW - 10f * (cols - 1)) / cols;
+        var cols = availW >= 640f ? 4 : (availW >= 460f ? 3 : 2);
+        const float gapX = 10f;
+        var cardW = MathF.Floor((availW - gapX * (cols - 1)) / cols);
+        var spriteSz = MathF.Min(116f, cardW - 24f);
 
         for (var i = 0; i < species.Length; i++)
         {
             var sp = species[i];
-            if (i % cols != 0) ImGui.SameLine(0, 10f);
+            if (i % cols != 0)
+            {
+                ImGui.SameLine(0, gapX);
+            }
+            else if (i > 0)
+            {
+                ImGui.Dummy(new Vector2(0, 6f));
+            }
 
             var isSel = selectedAdoptSpecies == (int)sp;
-            if (isSel) ImGui.PushStyleColor(ImGuiCol.Border, Theme.YellowMain);
-            ImGui.BeginChild($"##AdoptCard{i}", new Vector2(cardW, 196f), true, ImGuiWindowFlags.NoScrollbar);
+            if (isSel)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Border, Theme.YellowMain);
+                ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 1.8f);
+            }
+            ImGui.BeginChild($"##AdoptCard{i}", new Vector2(cardW, 194f), true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
+
+            var innerW = ImGui.GetContentRegionAvail().X;
+            var sprPadX = MathF.Max(0f, (innerW - spriteSz) * 0.5f);
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + sprPadX);
 
             var previewPet = new PetStateData { Species = sp, IsHatched = true, Level = 20 };
-            if (PetCanvasRenderer.DrawPetCanvas($"##Prev{i}", previewPet, isSel ? PetMood.Happy : PetMood.Idle, Plugin.Sim.AnimTimeSec, 0f, MathF.Min(114f, cardW - 20f)))
+            if (PetCanvasRenderer.DrawPetCanvas($"##Prev{i}", previewPet, isSel ? PetMood.Happy : PetMood.Idle, Plugin.Sim.AnimTimeSec, 0f, spriteSz))
             {
                 selectedAdoptSpecies = (int)sp;
                 adoptNameInput = PetStateData.DefaultNameFor(sp);
             }
 
-            ImGui.TextColored(isSel ? Theme.YellowMain : Theme.TextWhite, L.SpeciesName(sp));
-            if (ImGui.Button(isSel ? L.T("Selected ✓", "Selecionado ✓") : L.T("Select", "Selecionar"), new Vector2(-1, 24f)))
+            // Centered species name
+            var spName = L.SpeciesName(sp);
+            var nameW = ImGui.CalcTextSize(spName).X;
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + MathF.Max(0f, (innerW - nameW) * 0.5f));
+            ImGui.TextColored(isSel ? Theme.YellowMain : Theme.TextWhite, spName);
+
+            ImGui.Dummy(new Vector2(0, 2f));
+            if (isSel)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Button, Theme.YellowMain);
+                ImGui.PushStyleColor(ImGuiCol.Text, Theme.BgDark);
+            }
+            if (ImGui.Button(isSel ? L.T("Selected ✓", "Selecionado ✓") : L.T("Select", "Selecionar"), new Vector2(-1, 26f)))
             {
                 selectedAdoptSpecies = (int)sp;
                 adoptNameInput = PetStateData.DefaultNameFor(sp);
             }
+            if (isSel) ImGui.PopStyleColor(2);
 
             ImGui.EndChild();
-            if (isSel) ImGui.PopStyleColor();
+            if (isSel)
+            {
+                ImGui.PopStyleVar();
+                ImGui.PopStyleColor();
+            }
         }
 
         ImGui.Spacing();
@@ -1037,6 +1085,419 @@ public sealed class DashboardWindow : Window
         ImGui.EndChild();
     }
 
+    private int selectedBossType;
+    private bool inviteZoneOnSummon = true;
+
+    private void DrawSocialAndBossTab()
+    {
+        var cfg = Plugin.Config;
+        var mp = Plugin.Multiplayer;
+        var sim = Plugin.Sim;
+        var avail = ImGui.GetContentRegionAvail();
+
+        if (!cfg.MultiplayerEnabled)
+        {
+            ImGui.Dummy(new Vector2(0, 8f));
+            using (UiCard.Begin(L.T("Multiplayer Disabled", "Multiplayer Desativado")))
+            {
+                UiControls.InsetNote(L.T(
+                    "Enable PetFrenzy Multiplayer in 'HUD & Settings' to pet friends' companions, send gifts, and battle Co-op Mini-Bosses!",
+                    "Ative o Multiplayer do PetFrenzy em 'HUD & Config' para fazer carinho nos pets dos amigos, mandar presentes e enfrentar Mini-Bosses em grupo!"),
+                    Theme.YellowMain);
+            }
+            return;
+        }
+
+        if (mp.SocialToastTimerSec > 0f && !string.IsNullOrEmpty(mp.SocialToast))
+        {
+            ImGui.TextColored(Theme.YellowMain, mp.SocialToast);
+            ImGui.Spacing();
+        }
+
+        // Pending Zone Boss Invite banner (also shown in the Pet's floating speech bubble!)
+        var pendingInv = mp.PendingBossInvite;
+        if (pendingInv != null && (mp.ActiveBoss == null || mp.ActiveBoss.IsEnded))
+        {
+            using (UiCard.Begin(L.T("★ Mini-Boss Invite from Nearby Player!", "★ Convite de Mini-Boss de Jogador na Área!")))
+            {
+                var fromFirst = pendingInv.FromPlayerName.Split(' ')[0];
+                ImGui.TextColored(Theme.YellowMain, L.T(
+                    $"{fromFirst} ({pendingInv.FromPetName}) invited your pet to battle Lv.{pendingInv.BossLevel} {pendingInv.BossName}!",
+                    $"{fromFirst} ({pendingInv.FromPetName}) convidou seu pet para enfrentar Lv.{pendingInv.BossLevel} {pendingInv.BossName}!"));
+                ImGui.Spacing();
+                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.15f, 0.62f, 0.40f, 1f));
+                if (ImGui.Button(L.T("✓ Accept & Join Battle!", "✓ Aceitar e Entrar na Luta!"), new Vector2(190f, 28f)))
+                    mp.RespondToBossInvite(true);
+                ImGui.PopStyleColor();
+                ImGui.SameLine(0, 8f);
+                ImGui.PushStyleColor(ImGuiCol.Button, Theme.BgSurface);
+                if (ImGui.Button(L.T("× Decline", "× Recusar"), new Vector2(100f, 28f)))
+                    mp.RespondToBossInvite(false);
+                ImGui.PopStyleColor();
+            }
+            ImGui.Spacing();
+        }
+
+        var leftW = MathF.Max(290f, avail.X * 0.48f - 6f);
+        var rightW = MathF.Max(290f, avail.X - leftW - 10f);
+        var paneH = MathF.Max(260f, ImGui.GetContentRegionAvail().Y);
+
+        // ── LEFT PANE: Party & Nearby Friends (Live Petting & Gifts) ──
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, Vector4.Zero);
+        ImGui.BeginChild("##SocialPeersPane", new Vector2(leftW, paneH), false);
+        ImGui.PopStyleColor();
+
+        var peers = mp.GetAllPeersSnapshot();
+        using (UiCard.Begin(L.T($"Party & Nearby Pets ({peers.Count})", $"Pets da Party e da Área ({peers.Count})")))
+        {
+            if (peers.Count == 0)
+            {
+                UiControls.InsetNote(L.T(
+                    "No other PetFrenzy players nearby or in your party right now. Anyone using PetFrenzy in your zone or party will appear here!",
+                    "Nenhum outro jogador com PetFrenzy por perto ou na sua party agora. Quem usar PetFrenzy na sua área ou party aparece aqui automaticamente!"));
+            }
+            else
+            {
+                for (var i = 0; i < peers.Count; i++)
+                {
+                    var peer = peers[i];
+                    ImGui.PushID($"peer_{i}");
+                    if (i > 0) ImGui.Separator();
+
+                    var weaponStyle = peer.ShowWeapon ? peer.Job.Weapon : JobWeaponStyle.None;
+                    if (PetCanvasRenderer.DrawPetCanvas($"##PeerSpr_{i}", peer.PetData, peer.Mood, sim.AnimTimeSec, 0f, 48f, interactive: true, weaponStyle: weaponStyle, isWeaponDrawn: peer.IsWeaponDrawn))
+                    {
+                        mp.SendInteraction(peer, "pet");
+                    }
+
+                    ImGui.SameLine(0, 8f);
+                    ImGui.BeginGroup();
+                    if (peer.IsParty)
+                    {
+                        ImGui.TextColored(Theme.YellowMain, "★ PARTY");
+                        ImGui.SameLine(0, 6f);
+                    }
+                    ImGui.TextColored(Theme.TextWhite, peer.PlayerName);
+
+                    var jobStr = !string.IsNullOrEmpty(peer.Job.Abbrev) ? $" [{peer.Job.Abbrev}]" : string.Empty;
+                    ImGui.TextColored(Theme.TextMuted, $"{peer.PetData.Name} Lv.{peer.PetData.Level} • {L.SpeciesName(peer.PetData.Species)}{jobStr}");
+
+                    // 1-click Pet / Gift Snack / Gift Potion buttons
+                    var petCd = mp.GetInteractCooldownSec(peer.PlayerKey, "pet");
+                    ImGui.BeginDisabled(petCd > 0f);
+                    if (ImGui.SmallButton(petCd > 0f ? $"♥ {petCd:F0}s" : L.T("♥ Pet", "♥ Carinho")))
+                        mp.SendInteraction(peer, "pet");
+                    ImGui.EndDisabled();
+
+                    ImGui.SameLine();
+                    var snackCd = mp.GetInteractCooldownSec(peer.PlayerKey, "snack");
+                    ImGui.BeginDisabled(snackCd > 0f || cfg.Pet.Coins < PetMultiplayerService.GiftSnackCost);
+                    if (ImGui.SmallButton(L.T($"Snack ({PetMultiplayerService.GiftSnackCost}c)", $"Petisco ({PetMultiplayerService.GiftSnackCost}c)")))
+                        mp.SendInteraction(peer, "snack");
+                    ImGui.EndDisabled();
+                    if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+                        ImGui.SetTooltip(L.T("Gift a Kupo Nut Snack (+35% Hunger, wakes from hibernation, +12 XP)", "Presenteia uma Noz Kupo (+35% Fome, acorda hibernação, +12 XP)"));
+
+                    ImGui.SameLine();
+                    var potCd = mp.GetInteractCooldownSec(peer.PlayerKey, "potion");
+                    ImGui.BeginDisabled(potCd > 0f || cfg.Pet.Coins < PetMultiplayerService.GiftPotionCost);
+                    if (ImGui.SmallButton(L.T($"Potion ({PetMultiplayerService.GiftPotionCost}c)", $"Poção ({PetMultiplayerService.GiftPotionCost}c)")))
+                        mp.SendInteraction(peer, "potion");
+                    ImGui.EndDisabled();
+                    if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+                        ImGui.SetTooltip(L.T("Gift an Energy Potion (+35% Energy, +10 XP)", "Presenteia uma Poção de Energia (+35% Energia, +10 XP)"));
+
+                    ImGui.EndGroup();
+                    ImGui.PopID();
+                }
+            }
+        }
+        ImGui.EndChild();
+
+        ImGui.SameLine(0, 10f);
+
+        // ── RIGHT PANE: Party Co-op Mini-Boss Arena! ──
+        ImGui.PushStyleColor(ImGuiCol.ChildBg, Vector4.Zero);
+        ImGui.BeginChild("##SocialBossPane", new Vector2(rightW, paneH), false);
+        ImGui.PopStyleColor();
+
+        var boss = mp.ActiveBoss;
+        using (UiCard.Begin(L.T("Party Co-op Mini-Boss Arena", "Arena de Mini-Boss Co-op da Party")))
+        {
+            if (boss == null)
+            {
+                UiControls.InsetNote(L.T(
+                    "Waiting in DF/PF queue? Summon a Mini-Boss and battle it together with your Party's pets to earn bonus Pet Coins & XP! (Also works Solo to practice!)",
+                    "Esperando fila de DF/PF? Invoque um Mini-Boss e derrote junto com os pets da sua Party para ganhar Pet Coins e XP bônus! (Também funciona Solo pra testar!)"));
+
+                ImGui.Spacing();
+                var innerW = UiCard.InnerWidth;
+                var previewSz = 124f;
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + MathF.Max(0f, (innerW - previewSz) * 0.5f));
+                MiniBossRenderer.DrawBossCanvas("##BossPreview", selectedBossType, false, sim.AnimTimeSec, 0f, previewSz, clickable: false);
+
+                // Boss selector pills
+                var btnW = (innerW - 12f) * 0.5f;
+                for (var b = 0; b < MiniBossRenderer.Catalog.Length; b++)
+                {
+                    var def = MiniBossRenderer.Catalog[b];
+                    if (b % 2 == 1) ImGui.SameLine();
+                    var isSel = selectedBossType == def.Type;
+                    if (isSel)
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.Button, Theme.PurpleMain);
+                        ImGui.PushStyleColor(ImGuiCol.Text, Theme.YellowMain);
+                    }
+                    else
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.Button, Theme.BgSurface);
+                        ImGui.PushStyleColor(ImGuiCol.Text, Theme.TextLight);
+                    }
+                    if (ImGui.Button($"Lv.{def.Level} {L.T(def.NameEn, def.NamePt)}##bsel_{b}", new Vector2(btnW, 28f)))
+                        selectedBossType = def.Type;
+                    ImGui.PopStyleColor(2);
+                }
+
+                var chosen = MiniBossRenderer.Catalog[Math.Clamp(selectedBossType, 0, MiniBossRenderer.Catalog.Length - 1)];
+                ImGui.Spacing();
+                ImGui.TextColored(Theme.TextMuted, L.T(
+                    $"Boss Lv.{chosen.Level}  •  +{chosen.Coins} Coins  •  +{chosen.Xp} XP  •  135s",
+                    $"Boss Lv.{chosen.Level}  •  +{chosen.Coins} Moedas  •  +{chosen.Xp} XP  •  135s"));
+
+                if (mp.PartyPeerCount < 7)
+                {
+                    var nearbyFree = Math.Max(0, mp.ZonePeerCount - mp.PartyPeerCount);
+                    ImGui.Checkbox(L.T(
+                        $"Invite nearby players in zone ({nearbyFree} online)##DashInvChk",
+                        $"Convidar jogadores da área ({nearbyFree} online)##DashInvChk"), ref inviteZoneOnSummon);
+                }
+
+                ImGui.Spacing();
+                ImGui.PushStyleColor(ImGuiCol.Button, Theme.YellowMain);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(1f, 0.94f, 0.35f, 1f));
+                ImGui.PushStyleColor(ImGuiCol.Text, Theme.BgDark);
+                if (ImGui.Button(L.T($"Summon Lv.{chosen.Level} {chosen.NameEn}!", $"Invocar Lv.{chosen.Level} {chosen.NamePt}!"), new Vector2(innerW, 34f)))
+                {
+                    mp.SummonPartyBoss(chosen.Type, inviteZoneOnSummon && mp.PartyPeerCount < 7);
+                }
+                ImGui.PopStyleColor(3);
+            }
+            else
+            {
+                var innerW = UiCard.InnerWidth;
+                var headerCol = boss.Defeated ? Theme.GreenAccent : boss.Wiped ? Theme.RedDanger : Theme.TextWhite;
+                MiniBossRenderer.DrawLevelBadge(boss.BossLevel, isBossDanger: boss.BossLevel >= 70);
+                ImGui.SameLine(0, 8f);
+                ImGui.AlignTextToFramePadding();
+                var headerTxt = boss.Defeated
+                    ? L.T($"★ VICTORY! {boss.BossName} Defeated!", $"★ VITÓRIA! {boss.BossName} Derrotado!")
+                    : boss.Wiped
+                        ? L.T($"× WIPE! {boss.BossName}", $"× WIPE! {boss.BossName}")
+                        : boss.BossName;
+                ImGui.TextColored(headerCol, headerTxt);
+
+                if (!boss.IsEnded)
+                {
+                    var timerTxt = $"{boss.RemainingSec}s";
+                    var tw = ImGui.CalcTextSize(timerTxt).X;
+                    ImGui.SameLine(MathF.Max(ImGui.GetCursorPosX() + 8f, innerW - tw + 4f));
+                    ImGui.TextColored(boss.RemainingSec <= 25 ? Theme.RedDanger : Theme.YellowMain, timerTxt);
+                }
+
+                ImGui.Dummy(new Vector2(0, 4f));
+
+                var hpFrac = Math.Clamp((float)boss.Hp / Math.Max(1, boss.MaxHp), 0f, 1f);
+                MiniBossRenderer.DrawRpgBar(
+                    innerW, 10f, hpFrac,
+                    boss.Defeated ? Theme.GreenAccent : new Vector4(0.92f, 0.22f, 0.34f, 1f),
+                    L.T("BOSS HP", "HP DO BOSS"),
+                    $"{boss.Hp:N0} / {boss.MaxHp:N0}");
+
+                ImGui.Dummy(new Vector2(0, 3f));
+
+                if (boss.PartyMaxHp > 0)
+                {
+                    var partyFrac = Math.Clamp((float)boss.PartyHp / boss.PartyMaxHp, 0f, 1f);
+                    var partyCol = boss.ShieldActive
+                        ? Theme.CyanAccent
+                        : partyFrac <= 0.30f ? Theme.RedDanger : partyFrac <= 0.55f ? Theme.OrangeAccent : Theme.GreenAccent;
+                    var partyLeft = boss.ShieldActive
+                        ? L.T("PET PARTY HP  [SHIELD -70%]", "HP DOS PETS  [ESCUDO -70%]")
+                        : L.T("PET PARTY HP", "HP DOS PETS");
+                    MiniBossRenderer.DrawRpgBar(
+                        innerW, 9f, partyFrac, partyCol,
+                        partyLeft,
+                        $"{boss.PartyHp:N0} / {boss.PartyMaxHp:N0}",
+                        leftLabelCol: boss.ShieldActive ? Theme.CyanAccent : Theme.TextMuted,
+                        rightValueCol: partyFrac <= 0.30f ? Theme.RedDanger : Theme.TextWhite,
+                        glowBorder: boss.ShieldActive);
+
+                    if (!boss.IsEnded)
+                    {
+                        ImGui.Dummy(new Vector2(0, 3f));
+                        var lbFrac = Math.Clamp(boss.LbGauge / 100f, 0f, 1f);
+                        var lbRdy = boss.LbGauge >= 100;
+                        var lbCol = lbRdy
+                            ? Vector4.Lerp(Theme.YellowMain, Theme.CyanAccent, 0.5f + 0.5f * MathF.Sin(sim.AnimTimeSec * 9f))
+                            : new Vector4(0.96f, 0.68f, 0.14f, 1f);
+                        MiniBossRenderer.DrawRpgBar(
+                            innerW, 7f, lbFrac, lbCol,
+                            lbRdy ? L.T("★ PARTY LIMIT BREAK READY!", "★ LIMIT BREAK DA PARTY PRONTO!") : "LIMIT BREAK",
+                            $"{boss.LbGauge}%",
+                            leftLabelCol: lbRdy ? Theme.YellowMain : Theme.TextMuted,
+                            rightValueCol: lbRdy ? Theme.YellowMain : Theme.TextLight,
+                            glowBorder: lbRdy);
+                    }
+                }
+                else
+                {
+                    ImGui.TextColored(Theme.OrangeAccent, L.T(
+                        "! Update server (discloud.zip) for Pet HP & Boss Levels!",
+                        "! Atualize o servidor (discloud.zip) para HP e Níveis!"));
+                }
+
+                var isBossCasting = !boss.IsEnded && !string.IsNullOrEmpty(boss.BossCastName);
+                if (isBossCasting)
+                {
+                    ImGui.Dummy(new Vector2(0, 5f));
+                    MiniBossRenderer.DrawBossCastBanner(
+                        innerW,
+                        boss.BossCastName,
+                        boss.BossCastProgress,
+                        sim.AnimTimeSec,
+                        L.T("[ USE SHIELD! ]", "[ USE ESCUDO! ]"));
+                }
+
+                ImGui.Dummy(new Vector2(0, 6f));
+
+                // Shared live Battle Stage (Boss + up to 8 Party Pets surrounding and attacking!)
+                MiniBossRenderer.DrawLiveBattleStage("##ActiveBossCanvas", boss, innerW, 146f, sim.AnimTimeSec);
+
+                if (!string.IsNullOrEmpty(boss.LastHitText))
+                {
+                    ImGui.Dummy(new Vector2(0, 4f));
+                    MiniBossRenderer.DrawCombatLogPill(innerW, boss.LastHitText, boss.LastHitText.StartsWith("!") ? Theme.OrangeAccent : Theme.YellowMain);
+                }
+
+                ImGui.Dummy(new Vector2(0, 5f));
+                if (!boss.IsEnded)
+                {
+                    var skW = (innerW - 8f) * 0.5f;
+                    var skH = 30f;
+
+                    var bCd = mp.BurstCooldownSec;
+                    ImGui.BeginDisabled(bCd > 0f);
+                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.18f, 0.44f, 0.82f, 1f));
+                    if (ImGui.Button(bCd > 0f ? $"▲ {bCd:0.0}s##dsk1" : L.T("▲ Burst (2.2x)##dsk1", "▲ Golpe (2.2x)##dsk1"), new Vector2(skW, skH)))
+                        mp.AttackPartyBoss("burst", L.T("Burst Strike", "Golpe Duplo"));
+                    ImGui.PopStyleColor();
+                    ImGui.EndDisabled();
+
+                    ImGui.SameLine(0, 8f);
+                    var uCd = mp.UltimateCooldownSec;
+                    var ultName = PetMultiplayerService.GetSpeciesUltimateName(cfg.Pet.Species);
+                    ImGui.BeginDisabled(uCd > 0f);
+                    ImGui.PushStyleColor(ImGuiCol.Button, Theme.PurpleMain);
+                    if (ImGui.Button(uCd > 0f ? $"★ {uCd:0.0}s##dsk2" : L.T("★ Special (3.2x)##dsk2", "★ Especial (3.2x)##dsk2"), new Vector2(skW, skH)))
+                        mp.AttackPartyBoss("ultimate", ultName);
+                    ImGui.PopStyleColor();
+                    ImGui.EndDisabled();
+
+                    ImGui.Dummy(new Vector2(0, 2f));
+
+                    var lbReady = boss.LbGauge >= 100;
+                    ImGui.BeginDisabled(!lbReady);
+                    ImGui.PushStyleColor(ImGuiCol.Button, lbReady ? Theme.YellowMain : Theme.BgSurface);
+                    ImGui.PushStyleColor(ImGuiCol.Text, lbReady ? Theme.BgDark : Theme.TextMuted);
+                    if (ImGui.Button(lbReady ? "♥ LIMIT BREAK! (5.5x)##dsk3" : $"♥ LB {boss.LbGauge}%##dsk3", new Vector2(skW, skH)))
+                        mp.AttackPartyBoss("lb", "Pet Limit Break");
+                    ImGui.PopStyleColor(2);
+                    ImGui.EndDisabled();
+
+                    ImGui.SameLine(0, 8f);
+                    var hCd = mp.HealCooldownSec;
+                    ImGui.BeginDisabled(hCd > 0f);
+                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.14f, 0.58f, 0.42f, 1f));
+                    if (ImGui.Button(hCd > 0f ? $"+ {hCd:0.0}s##dsk4" : L.T("+ Heal & Shield##dsk4", "+ Cura & Escudo##dsk4"), new Vector2(skW, skH)))
+                        mp.AttackPartyBoss("heal", L.T("Heal & Shield", "Cura & Escudo"));
+                    ImGui.PopStyleColor();
+                    ImGui.EndDisabled();
+
+                    ImGui.Dummy(new Vector2(0, 4f));
+                    var fightersCount = Math.Max(1, boss.ParticipantKeys.Count);
+                    if (fightersCount < 8 && mp.ZonePeerCount > mp.PartyPeerCount)
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.24f, 0.10f, 0.48f, 1f));
+                        if (ImGui.Button(L.T($"+ Invite Zone Players ({fightersCount}/8)##DashInvMid", $"+ Convidar Jogadores da Área ({fightersCount}/8)##DashInvMid"), new Vector2(innerW, 26f)))
+                            mp.InviteZoneToActiveBoss();
+                        ImGui.PopStyleColor();
+                        ImGui.Dummy(new Vector2(0, 2f));
+                    }
+                    ImGui.PushStyleColor(ImGuiCol.Button, Theme.BgSurface);
+                    if (ImGui.Button(mp.ShowBossBattleHud ? L.T("Hide On-Screen Battle HUD", "Esconder HUD de Combate na Tela") : L.T("Show On-Screen Battle HUD", "Mostrar HUD de Combate na Tela"), new Vector2(innerW, 26f)))
+                        mp.ShowBossBattleHud = !mp.ShowBossBattleHud;
+                    ImGui.PopStyleColor();
+                }
+                else
+                {
+                    if (boss.Defeated)
+                    {
+                        ImGui.TextColored(Theme.GreenAccent, L.T(
+                            $"Reward: +{boss.RewardCoins} Coins  •  +{boss.RewardXp} XP!",
+                            $"Recompensa: +{boss.RewardCoins} Moedas  •  +{boss.RewardXp} XP!"));
+                    }
+                    else
+                    {
+                        UiControls.TextWrappedColored(Theme.RedDanger, L.T(
+                            "Your pets were defeated! Use '+ Heal & Shield' to mitigate boss casts and recover HP.",
+                            "Seus pets foram derrotados! Use '+ Cura & Escudo' para reduzir o dano dos casts do boss e recuperar HP."));
+                    }
+
+                    // After Victory or Wipe, let player pick ANY Mini-Boss right here to go again!
+                    ImGui.TextColored(Theme.TextMuted, L.T("Choose next Mini-Boss:", "Escolha o próximo Mini-Boss:"));
+                    var btnW = (innerW - 12f) * 0.5f;
+                    for (var b = 0; b < MiniBossRenderer.Catalog.Length; b++)
+                    {
+                        var def = MiniBossRenderer.Catalog[b];
+                        if (b % 2 == 1) ImGui.SameLine();
+                        var isSel = selectedBossType == def.Type;
+                        ImGui.PushStyleColor(ImGuiCol.Button, isSel ? Theme.PurpleMain : Theme.BgSurface);
+                        ImGui.PushStyleColor(ImGuiCol.Text, isSel ? Theme.YellowMain : Theme.TextLight);
+                        if (ImGui.Button($"Lv.{def.Level} {L.T(def.NameEn, def.NamePt)}##nxt_{b}", new Vector2(btnW, 26f)))
+                            selectedBossType = def.Type;
+                        ImGui.PopStyleColor(2);
+                    }
+
+                    if (mp.PartyPeerCount < 7)
+                    {
+                        var nearbyFree = Math.Max(0, mp.ZonePeerCount - mp.PartyPeerCount);
+                        ImGui.Checkbox(L.T(
+                            $"Invite nearby players in zone ({nearbyFree} online)##DashInvNext",
+                            $"Convidar jogadores da área ({nearbyFree} online)##DashInvNext"), ref inviteZoneOnSummon);
+                    }
+
+                    ImGui.Spacing();
+                    ImGui.PushStyleColor(ImGuiCol.Button, Theme.YellowMain);
+                    ImGui.PushStyleColor(ImGuiCol.Text, Theme.BgDark);
+                    if (ImGui.Button(L.T("Summon Selected Mini-Boss!", "Invocar Mini-Boss Selecionado!"), new Vector2(innerW, 32f)))
+                        mp.SummonPartyBoss(selectedBossType, inviteZoneOnSummon && mp.PartyPeerCount < 7);
+                    ImGui.PopStyleColor(2);
+                }
+
+                if (boss.Contributors.Count > 0)
+                {
+                    ImGui.Spacing();
+                    ImGui.TextColored(Theme.CyanAccent, L.T("Party Damage", "Dano da Party"));
+                    foreach (var c in boss.Contributors)
+                    {
+                        ImGui.TextColored(Theme.TextLight, $"  • {c.PetName} ({c.PlayerName.Split(' ')[0]}): {c.Damage:N0} dmg");
+                    }
+                }
+            }
+        }
+        ImGui.EndChild();
+    }
+
     private void DrawSettingsTab()
     {
         var cfg = Plugin.Config;
@@ -1045,6 +1506,7 @@ public sealed class DashboardWindow : Window
         ImGui.PopStyleColor();
         ImGui.Dummy(new Vector2(0, 4f));
 
+        Plugin.Tutorial.ScrollHereIfTargeted("settings_hud_card");
         var hudCardMin = ImGui.GetCursorScreenPos();
         using (UiCard.Begin(L.T("Floating Pet HUD", "HUD Flutuante do Pet")))
         {
@@ -1081,6 +1543,7 @@ public sealed class DashboardWindow : Window
         var hudCardMax = new Vector2(hudCardMin.X + ImGui.GetContentRegionAvail().X, ImGui.GetCursorScreenPos().Y - 10f);
         Plugin.Tutorial.RegisterTargetRect("settings_hud_card", hudCardMin, hudCardMax);
 
+        Plugin.Tutorial.ScrollHereIfTargeted("settings_inter_card");
         var interCardMin = ImGui.GetCursorScreenPos();
         using (UiCard.Begin(L.T("Companion Display & Interactions", "Exibição e Interações do Pet")))
         {
@@ -1105,6 +1568,7 @@ public sealed class DashboardWindow : Window
         var interCardMax = new Vector2(interCardMin.X + ImGui.GetContentRegionAvail().X, ImGui.GetCursorScreenPos().Y - 10f);
         Plugin.Tutorial.RegisterTargetRect("settings_inter_card", interCardMin, interCardMax);
 
+        Plugin.Tutorial.ScrollHereIfTargeted("settings_mp_card");
         var mpCardMin = ImGui.GetCursorScreenPos();
         using (UiCard.Begin(L.T("Multiplayer — Nearby & Party Pets (Beta)", "Multiplayer — Pets na Área & Party (Beta)")))
         {
@@ -1294,11 +1758,19 @@ public sealed class DashboardWindow : Window
 
         ImGui.PushStyleColor(ImGuiCol.Button, Theme.YellowMain);
         ImGui.PushStyleColor(ImGuiCol.Text, Theme.BgDark);
-        if (ImGui.Button(L.T("★  Replay Tutorial", "★  Rever Tutorial"), new Vector2(-1, 32f)))
+        if (ImGui.Button(L.T("★  Replay Tutorial", "★  Rever Tutorial"), new Vector2(-1, 30f)))
         {
             Plugin.Tutorial.Start();
         }
         ImGui.PopStyleColor(2);
+
+        ImGui.Dummy(new Vector2(0, 4f));
+        ImGui.PushStyleColor(ImGuiCol.Button, Theme.PurpleMain);
+        if (ImGui.Button(L.T("◆  What's New / Changelog", "◆  Novidades / Changelog"), new Vector2(-1, 28f)))
+        {
+            Plugin.Instance.OpenChangelog();
+        }
+        ImGui.PopStyleColor();
         ImGui.EndChild();
         ImGui.PopStyleVar();
 
@@ -1313,7 +1785,7 @@ public sealed class DashboardWindow : Window
         {
             ImGui.TextColored(Theme.TextWhite, "PetFrenzy — Eorzea Tamagotchi");
             ImGui.SameLine();
-            ImGui.TextColored(Theme.YellowMain, "v1.0.0.3");
+            ImGui.TextColored(Theme.YellowMain, $"v{Plugin.CurrentVersion}");
             ImGui.TextColored(Theme.TextMuted, L.T("Created with love by n0way02", "Criado com carinho por n0way02"));
             ImGui.Dummy(new Vector2(0, 6f));
 

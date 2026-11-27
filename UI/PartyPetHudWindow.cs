@@ -115,16 +115,51 @@ public sealed class PartyPetHudWindow : Window
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (contentW - canvasSize) * 0.5f);
 
             var weaponStyle = peer.ShowWeapon ? peer.Job.Weapon : JobWeaponStyle.None;
-            PetCanvasRenderer.DrawPetCanvas(
+            var clicked = PetCanvasRenderer.DrawPetCanvas(
                 $"##PartyPetCanvas_{slotIndex}",
                 peer.PetData,
                 liveMood,
                 Plugin.Sim.AnimTimeSec,
                 0f,
                 canvasSize,
-                interactive: false,
+                interactive: true,
                 weaponStyle: weaponStyle,
                 isWeaponDrawn: liveWeaponDrawn);
+
+            if (clicked)
+            {
+                Plugin.Multiplayer.SendInteraction(peer, "pet");
+            }
+
+            // Right-click context menu for live petting & gifting snacks/potions!
+            if (ImGui.BeginPopupContextItem($"##PartyPetCtx_{slotIndex}"))
+            {
+                ImGui.TextColored(Theme.YellowMain, $"{peer.PetData.Name} ({peer.PlayerName})");
+                ImGui.Separator();
+
+                var petCd = Plugin.Multiplayer.GetInteractCooldownSec(peer.PlayerKey, "pet");
+                ImGui.BeginDisabled(petCd > 0f);
+                var petLbl = petCd > 0f
+                    ? L.T($"♥ Pet ({petCd:F0}s)", $"♥ Carinho ({petCd:F0}s)")
+                    : L.T($"♥ Pet {peer.PetData.Name} (Free)", $"♥ Fazer Carinho em {peer.PetData.Name} (Grátis)");
+                if (ImGui.MenuItem(petLbl))
+                    Plugin.Multiplayer.SendInteraction(peer, "pet");
+                ImGui.EndDisabled();
+
+                var snackCd = Plugin.Multiplayer.GetInteractCooldownSec(peer.PlayerKey, "snack");
+                ImGui.BeginDisabled(snackCd > 0f || Plugin.Config.Pet.Coins < PetMultiplayerService.GiftSnackCost);
+                if (ImGui.MenuItem(L.T($"★ Gift Snack ({PetMultiplayerService.GiftSnackCost} Coins)", $"★ Presentear Petisco ({PetMultiplayerService.GiftSnackCost} Moedas)")))
+                    Plugin.Multiplayer.SendInteraction(peer, "snack");
+                ImGui.EndDisabled();
+
+                var potCd = Plugin.Multiplayer.GetInteractCooldownSec(peer.PlayerKey, "potion");
+                ImGui.BeginDisabled(potCd > 0f || Plugin.Config.Pet.Coins < PetMultiplayerService.GiftPotionCost);
+                if (ImGui.MenuItem(L.T($"⚡ Gift Energy Potion ({PetMultiplayerService.GiftPotionCost} Coins)", $"⚡ Presentear Poção ({PetMultiplayerService.GiftPotionCost} Moedas)")))
+                    Plugin.Multiplayer.SendInteraction(peer, "potion");
+                ImGui.EndDisabled();
+
+                ImGui.EndPopup();
+            }
 
             // Speech bubble if remote speech bubbles are enabled and peer is saying something
             if (cfg.MultiplayerShowRemoteSpeechBubbles && !string.IsNullOrEmpty(peer.SpeechBubble))
@@ -158,6 +193,7 @@ public sealed class PartyPetHudWindow : Window
                     ImGui.TextColored(Theme.TextMuted, $"Lv.{peer.PetData.Level} ({L.StageName(peer.PetData.Stage)})");
                 else
                     ImGui.TextColored(Theme.TextMuted, $"{L.T("Egg", "Ovo")}: {peer.PetData.EggProgress:F0}%");
+                ImGui.TextColored(Theme.YellowMain, L.T("Left-click: Pet ♥  •  Right-click: Gift Snack/Potion", "Clique esq.: Carinho ♥  •  Dir.: Dar Presente"));
                 if (!cfg.MultiplayerLockPartyPets)
                     ImGui.TextColored(Theme.TextMuted, L.T("Drag to reposition anywhere", "Arraste para posicionar onde quiser"));
                 ImGui.EndTooltip();
