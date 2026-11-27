@@ -20,6 +20,9 @@ public sealed class Configuration : IPluginConfiguration
     /// <summary>Last PetFrenzy version for which the user already viewed the "What's New" changelog popup.</summary>
     public string LastSeenChangelogVersion { get; set; } = string.Empty;
 
+    /// <summary>When true, automatically shows the "What's New" changelog once whenever PetFrenzy updates.</summary>
+    public bool AutoShowChangelogOnUpdate { get; set; } = true;
+
     /// <summary>Floating HUD visibility and appearance (stored in PetFrenzy.json).</summary>
     public bool ShowHud { get; set; } = true;
     public bool TransparentHud { get; set; } = true;

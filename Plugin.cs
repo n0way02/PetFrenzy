@@ -139,11 +139,12 @@ public sealed class Plugin : IDalamudPlugin
             && !Multiplayer.BossHudDismissedForCurrentId
             && Multiplayer.ActiveBoss != null;
 
-        // Auto-open "What's New" changelog once when an existing user updates to a new version!
+        // Auto-open "What's New" changelog once when an existing user updates to a new version (unless opted out)!
         if (!changelogCheckedThisSession && ClientState.IsLoggedIn && !hideForCutscene)
         {
             changelogCheckedThisSession = true;
-            if (!string.Equals(Config.LastSeenChangelogVersion, CurrentVersion, System.StringComparison.Ordinal))
+            if (Config.AutoShowChangelogOnUpdate
+                && !string.Equals(Config.LastSeenChangelogVersion, CurrentVersion, System.StringComparison.Ordinal))
             {
                 if (Config.TutorialCompleted)
                     changelogWindow.IsOpen = true;

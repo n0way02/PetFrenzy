@@ -21,13 +21,20 @@ public sealed class ChangelogWindow : Window
         Level = 50,
     };
 
+    private int resetScrollFrames;
+
     public ChangelogWindow()
         : base($"PetFrenzy — What's New (v{Plugin.CurrentVersion})###PetFrenzyChangelog",
-            ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize)
+            ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(560f, 540f);
+        Size = new Vector2(560f, 560f);
         SizeCondition = ImGuiCond.Always;
         IsOpen = false;
+    }
+
+    public override void OnOpen()
+    {
+        resetScrollFrames = 2;
     }
 
     public override void PreDraw()
@@ -86,11 +93,16 @@ public sealed class ChangelogWindow : Window
             ImGui.Separator();
             ImGui.Spacing();
 
-            // ── Scrollable Changelog Cards ──
-            var scrollH = MathF.Max(140f, ImGui.GetContentRegionAvail().Y - 46f);
+            // ── Scrollable Changelog Cards (always starts scrolled to the very top on open!) ──
+            var scrollH = MathF.Max(140f, ImGui.GetContentRegionAvail().Y - 76f);
             ImGui.PushStyleColor(ImGuiCol.ChildBg, Vector4.Zero);
             ImGui.BeginChild("##ChangelogScroll", new Vector2(availW, scrollH), false);
             ImGui.PopStyleColor();
+            if (resetScrollFrames > 0)
+            {
+                ImGui.SetScrollY(0f);
+                resetScrollFrames--;
+            }
 
             using (UiCard.Begin(L.T("★ New Companion: Deviruchi!", "★ Novo Mascote: Deviruchi!")))
             {
@@ -143,7 +155,17 @@ public sealed class ChangelogWindow : Window
 
             ImGui.EndChild();
 
-            // ── Bottom Dismiss Button ──
+            // ── Opt-out checkbox + Bottom Dismiss Button ──
+            ImGui.Dummy(new Vector2(0, 4f));
+            var dontAutoShow = !cfg.AutoShowChangelogOnUpdate;
+            if (ImGui.Checkbox(L.T(
+                "Don't show this Changelog automatically on future updates##ChgOptOut",
+                "Não mostrar este Changelog automaticamente nas próximas atualizações##ChgOptOut"), ref dontAutoShow))
+            {
+                cfg.AutoShowChangelogOnUpdate = !dontAutoShow;
+                cfg.Save();
+            }
+
             ImGui.Dummy(new Vector2(0, 4f));
             ImGui.PushStyleColor(ImGuiCol.Button, Theme.YellowMain);
             ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(1f, 0.94f, 0.35f, 1f));
