@@ -418,9 +418,47 @@ public static class JobWeaponRenderer
             }
             case JobWeaponStyle.Scythe:
             {
-                dl.AddLine(R(o, 0, 26, angle, s), R(o, 0, -27, angle, s), dark, 3.5f * s);
-                dl.AddTriangleFilled(R(o, 0, -27, angle, s), R(o, 24, -16, angle, s), R(o, 13, -7, angle, s), crimson);
-                dl.AddLine(R(o, 0, -27, angle, s), R(o, 24, -16, angle, s), silver, 2.5f * s);
+                // Long dark reaper shaft + bottom counterweight spike + grip wraps
+                dl.AddLine(R(o, 0, 25, angle, s), R(o, 0, -25, angle, s), dark, 3.2f * s);
+                dl.AddTriangleFilled(R(o, -2.2f, 24, angle, s), R(o, 2.2f, 24, angle, s), R(o, 0, 31, angle, s), steel);
+                dl.AddLine(R(o, -2.0f, 10, angle, s), R(o, 2.0f, 12, angle, s), crimson, 1.8f * s);
+                dl.AddLine(R(o, -2.0f, 4, angle, s), R(o, 2.0f, 6, angle, s), crimson, 1.8f * s);
+
+                // Ornate collar + wicked back-spike on the opposite side of the blade
+                dl.AddTriangleFilled(R(o, -1, -27, angle, s), R(o, -10, -29, angle, s), R(o, -1, -22, angle, s), steel);
+                dl.AddLine(R(o, -1, -27, angle, s), R(o, -10, -29, angle, s), silver, 1.2f * s);
+
+                // Sweeping curved crescent scythe blade (3 segments tapering to a downward-hooked tip!)
+                var bO0 = R(o, 0, -27, angle, s);
+                var bI0 = R(o, 2, -20.5f, angle, s);
+                var bO1 = R(o, 13, -30, angle, s);
+                var bI1 = R(o, 11.5f, -24, angle, s);
+                var bO2 = R(o, 24.5f, -22.5f, angle, s);
+                var bI2 = R(o, 19.5f, -18.5f, angle, s);
+                var bTip = R(o, 26.5f, -6.5f, angle, s);
+
+                // Dark metallic blade body
+                dl.AddQuadFilled(bO0, bO1, bI1, bI0, steel);
+                dl.AddQuadFilled(bO1, bO2, bI2, bI1, steel);
+                dl.AddTriangleFilled(bO2, bTip, bI2, steel);
+
+                // Dark spine along the outer curve
+                dl.AddLine(bO0, bO1, dark, 2.4f * s);
+                dl.AddLine(bO1, bO2, dark, 2.2f * s);
+                dl.AddLine(bO2, bTip, dark, 1.8f * s);
+
+                // Razor-sharp glowing inner cutting edge (silver + crimson/void sheen)
+                var bladeEdge = skin == WeaponSkin.Default ? crimson : edgeGlow;
+                dl.AddLine(bI0, bI1, bladeEdge, 2.2f * s);
+                dl.AddLine(bI1, bI2, bladeEdge, 2.0f * s);
+                dl.AddLine(bI2, bTip, bladeEdge, 1.8f * s);
+                dl.AddLine(bI0, bI1, silver, 1.0f * s);
+                dl.AddLine(bI1, bI2, silver, 1.0f * s);
+                dl.AddLine(bI2, bTip, silver, 0.9f * s);
+
+                // Glowing void crystal core at the scythe collar
+                dl.AddCircleFilled(R(o, 0, -24.5f, angle, s), 3.3f * s, dark);
+                dl.AddCircleFilled(R(o, 0, -24.5f, angle, s), 2.1f * s, bladeEdge);
                 break;
             }
             case JobWeaponStyle.Bow:
