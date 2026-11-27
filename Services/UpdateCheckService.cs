@@ -13,7 +13,7 @@ namespace PetFrenzy.Services;
 /// </summary>
 public sealed class UpdateCheckService : IDisposable
 {
-    private const string ManifestUrl = "https://raw.githubusercontent.com/n0way02/PetFrenzy/main/pluginmaster.json";
+    private const string ManifestUrl = "https://n0wayplugins.discloud.app/repo.json";
     private static readonly TimeSpan InitialDelay = TimeSpan.FromSeconds(12);
     private static readonly TimeSpan PollInterval = TimeSpan.FromMinutes(30);
 
@@ -70,7 +70,8 @@ public sealed class UpdateCheckService : IDisposable
 
             var body = await resp.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
             var entries = JsonSerializer.Deserialize<List<ManifestEntryDto>>(body, JsonOpts);
-            var remoteStr = entries is { Count: > 0 } ? entries[0].AssemblyVersion : null;
+            var petEntry = entries?.Find(e => string.Equals(e.InternalName, "PetFrenzy", StringComparison.OrdinalIgnoreCase));
+            var remoteStr = petEntry?.AssemblyVersion;
             if (string.IsNullOrWhiteSpace(remoteStr)) return;
 
             if (Version.TryParse(remoteStr, out var remoteVer)
@@ -99,6 +100,7 @@ public sealed class UpdateCheckService : IDisposable
 
     private sealed class ManifestEntryDto
     {
+        public string? InternalName { get; set; }
         public string? AssemblyVersion { get; set; }
     }
 }

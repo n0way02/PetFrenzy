@@ -201,10 +201,10 @@ public sealed class PetHudWindow : Window
                     $"\"{fromFirst} ({invite.FromPetName}) convidou a gente pra enfrentar Lv.{invite.BossLevel} {invite.BossName}!\"");
 
                 var padX = 10f;
-                var padY = 8f;
+                var padY = 9f;
                 var wrapW = cardW - padX * 2f;
                 var textH = ImGui.CalcTextSize(msg, false, wrapW).Y;
-                var cardH = padY * 2f + textH + 8f + 26f;
+                var cardH = padY * 2f + textH + 22f + 26f;
 
                 var origin = ImGui.GetCursorScreenPos();
                 var dl = ImGui.GetWindowDrawList();
@@ -258,10 +258,10 @@ public sealed class PetHudWindow : Window
                     $"\"★ Saiu o PetFrenzy v{newVer}! Atualiza no Dalamud pra pegar as novidades!\"");
 
                 var padX = 10f;
-                var padY = 8f;
+                var padY = 9f;
                 var wrapW = cardW - padX * 2f;
                 var textH = ImGui.CalcTextSize(msg, false, wrapW).Y;
-                var cardH = padY * 2f + textH + 8f + 24f;
+                var cardH = padY * 2f + textH + 22f + 24f;
 
                 var origin = ImGui.GetCursorScreenPos();
                 var dl = ImGui.GetWindowDrawList();
