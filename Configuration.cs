@@ -22,7 +22,7 @@ public sealed class Configuration : IPluginConfiguration
 
     /// <summary>Floating HUD visibility and appearance (stored in PetFrenzy.json).</summary>
     public bool ShowHud { get; set; } = true;
-    public bool TransparentHud { get; set; } = false;
+    public bool TransparentHud { get; set; } = true;
     public bool LockHudPosition { get; set; } = false;
     public bool ShowHudQuickButtons { get; set; } = true;
     public bool ShowSpeechBubbles { get; set; } = true;
