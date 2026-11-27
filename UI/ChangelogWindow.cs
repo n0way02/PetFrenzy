@@ -135,10 +135,10 @@ public sealed class ChangelogWindow : Window
                 UiControls.TextWrappedColored(Theme.TextLight, L.T(
                     "• Redesigned Egg Nursery grid (max 4 companions per row with larger centered previews!).\n" +
                     "• Sleek custom RPG HP, Limit Break & Boss Cast banners in both the Floating Arena HUD and Dashboard.\n" +
-                    "• Automatic 'What's New' Changelog popup on updates & improved Tutorial with auto-scrolling spotlights!",
+                    "• Automatic 'What's New' Changelog popup on updates, live Pet speech-bubble alerts when a new version is out, & improved Tutorial with auto-scrolling spotlights!",
                     "• Nova grade da Chocadeira (máximo 4 pets por linha com previews maiores e centralizados!).\n" +
                     "• Barras RPG redesenhadas de HP, Limit Break e Cast do Boss tanto na HUD flutuante quanto no Painel.\n" +
-                    "• Popup automático de Novidades ao atualizar e Tutorial atualizado com auto-scroll inteligente!"));
+                    "• Popup automático de Novidades ao atualizar, aviso no balão de fala do Pet quando sair versão nova e Tutorial atualizado com auto-scroll inteligente!"));
             }
 
             ImGui.EndChild();

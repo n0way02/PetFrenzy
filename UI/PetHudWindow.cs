@@ -248,6 +248,55 @@ public sealed class PetHudWindow : Window
                 ImGui.PopStyleVar(3);
                 ImGui.PopStyleColor(2);
             }
+            else if (Plugin.UpdateChecker.HasVisibleUpdateNotice && Plugin.UpdateChecker.AvailableVersion is { } newVer)
+            {
+                // ── Cute Pet Speech-Bubble Alert when a newer version of PetFrenzy is available! ──
+                ImGui.Dummy(new Vector2(0, 8f));
+                var cardW = MathF.Max(220f, canvasSize);
+                var msg = L.T(
+                    $"\"★ PetFrenzy v{newVer} is out! Update in Dalamud to get the new goodies!\"",
+                    $"\"★ Saiu o PetFrenzy v{newVer}! Atualiza no Dalamud pra pegar as novidades!\"");
+
+                var padX = 10f;
+                var padY = 8f;
+                var wrapW = cardW - padX * 2f;
+                var textH = ImGui.CalcTextSize(msg, false, wrapW).Y;
+                var cardH = padY * 2f + textH + 8f + 24f;
+
+                var origin = ImGui.GetCursorScreenPos();
+                var dl = ImGui.GetWindowDrawList();
+
+                var tailCenter = origin.X + MathF.Min(cardW * 0.5f, canvasSize * 0.5f);
+                dl.AddTriangleFilled(
+                    new Vector2(tailCenter - 7f, origin.Y + 2f),
+                    new Vector2(tailCenter + 7f, origin.Y + 2f),
+                    new Vector2(tailCenter, origin.Y - 7f),
+                    Theme.Rgba(0.14f, 0.03f, 0.29f, 0.96f));
+                dl.AddLine(new Vector2(tailCenter - 7f, origin.Y + 1f), new Vector2(tailCenter, origin.Y - 7f), Theme.ColU32(Theme.CyanAccent), 1.5f);
+                dl.AddLine(new Vector2(tailCenter + 7f, origin.Y + 1f), new Vector2(tailCenter, origin.Y - 7f), Theme.ColU32(Theme.CyanAccent), 1.5f);
+
+                ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0.14f, 0.03f, 0.29f, 0.96f));
+                ImGui.PushStyleColor(ImGuiCol.Border, Theme.CyanAccent);
+                ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 10f);
+                ImGui.PushStyleVar(ImGuiStyleVar.ChildBorderSize, 1.5f);
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(padX, padY));
+
+                if (ImGui.BeginChild("##PetUpdateNoticeBubble", new Vector2(cardW, cardH), true, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+                {
+                    ImGui.PushTextWrapPos(padX + wrapW);
+                    ImGui.TextColored(Theme.CyanAccent, msg);
+                    ImGui.PopTextWrapPos();
+
+                    ImGui.Dummy(new Vector2(0, 4f));
+                    ImGui.PushStyleColor(ImGuiCol.Button, Theme.PurpleMain);
+                    if (ImGui.Button(L.T("✓ Got it!", "✓ Entendi!"), new Vector2(-1, 23f)))
+                        Plugin.UpdateChecker.Dismiss();
+                    ImGui.PopStyleColor();
+                }
+                ImGui.EndChild();
+                ImGui.PopStyleVar(3);
+                ImGui.PopStyleColor(2);
+            }
         }
         finally
         {

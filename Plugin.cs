@@ -34,6 +34,7 @@ public sealed class Plugin : IDalamudPlugin
     public static PetSimulationService Sim { get; private set; } = null!;
     public static PetMultiplayerService Multiplayer { get; private set; } = null!;
     public static TutorialOverlay Tutorial { get; private set; } = null!;
+    public static UpdateCheckService UpdateChecker { get; private set; } = null!;
     public static Plugin Instance { get; private set; } = null!;
 
     private readonly WindowSystem windowSystem = new("PetFrenzy");
@@ -54,6 +55,7 @@ public sealed class Plugin : IDalamudPlugin
         Sim = new PetSimulationService();
         Multiplayer = new PetMultiplayerService();
         Tutorial = new TutorialOverlay();
+        UpdateChecker = new UpdateCheckService();
         worldOverlay = new MultiplayerWorldOverlay();
 
         dashboardWindow = new DashboardWindow();
@@ -168,6 +170,7 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager.RemoveHandler(CommandAlias);
 
         windowSystem.RemoveAllWindows();
+        UpdateChecker.Dispose();
         Multiplayer.Dispose();
         Sim.Dispose();
         Config.Save();
